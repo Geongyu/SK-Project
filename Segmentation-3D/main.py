@@ -13,15 +13,12 @@ import torch.backends.cudnn as cudnn
 
 from dataset import DatasetTrain, DatasetVal
 
-from utils import Logger, AverageMeter, save_checkpoint ,draw_curve,send_slack_message
+from utils import Logger, AverageMeter, save_checkpoint ,draw_curve
 
-#from models import *
-
-from model import UNet3D
 
 from utils import Logger, AverageMeter, save_checkpoint
 from model import UNet3D
-from unet3d.losses import DiceLoss
+from losses import DiceLoss
 from predict import main_test
 import random
 
@@ -32,9 +29,9 @@ parser = argparse.ArgumentParser()
 
 
 # arguments for training
-parser.add_argument('--trn-root', default='/data2/woans0104/sk_hemorrhage_dataset/sk_3d_patch/data2th_trainvalid_3d_patches_48_96_96_st_52_bg_0.05_nonzero_0.1')
-parser.add_argument('--val-root', default='/data2/woans0104/sk_hemorrhage_dataset/sk_3d_patch/data2th_test_3d_patches_48_96_96_st_52_bg_0.05_nonzero_0.1')
-parser.add_argument('--work-dir', default='/data1/JM/segmentation_3d')
+parser.add_argument('--trn-root', default='/data1/JM/sk_project/data2th_trainvalid_3d_patches_48_48_48_st_16_bg_0.1_nonzero_0.1')
+parser.add_argument('--val-root', default='/data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1')
+parser.add_argument('--work-dir', default='/data1/JM/sk_project/Segmentation-3D')
 parser.add_argument('--exp', type=str)
 
 

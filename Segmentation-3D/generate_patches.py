@@ -76,7 +76,7 @@ def generate_patches(data_root,
     image_dir = os.path.join(data_root, 'images', data_id)
     mask_dir = os.path.join(data_root, 'masks', data_id)
 
-    import ipdb; ipdb.set_trace()
+
     image_3d = _load_exam(image_dir, ftype='png')
     mask_3d = _load_exam(mask_dir, ftype='gif')
 
@@ -150,25 +150,25 @@ def generate_patches(data_root,
 if __name__=='__main__':
 
 
-    def generate_patch(mode,patchsize,stride,bg_prob,nonzero):
+    def generate_patch(mode,patchsize,stride,bg_prob):
 
         # training
         if mode == 'train':
             data_root = ['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/trainvalid_3d',
                          '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/trainvalid_3d',
-                         '/data2/woans0104/sk_hemorrhage_dataset/data_3rd/trainvalid_3d',
-                         '/data2/woans0104/sk_hemorrhage_dataset/data_4rd/trainvalid_3d'
+                         #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/trainvalid_3d',
+                         #'/data2/woans0104/sk_hemorrhage_dataset/data_4rd/trainvalid_3d'
                          ]
-            dst_dir = '/data1/JM/segmentation_3d/data2th_trainvalid_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,nonzero)
+            dst_dir = '/data1/JM/sk_project/data2th_trainvalid_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,0.1)
 
         # test
         elif mode == 'test':
             data_root = ['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/test_3d',
                          '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
-                         '/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d',
-                         '/data2/woans0104/sk_hemorrhage_dataset/data_4rd/test_3d'
+                         #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d',
+                         #'/data2/woans0104/sk_hemorrhage_dataset/data_4rd/test_3d'
                          ]
-            dst_dir = '/data1/JM/segmentation_3d/data2th_test_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,nonzero)
+            dst_dir = '/data1/JM/sk_project/data2th_test_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,0.1)
 
 
         data_ids_list = []
@@ -193,4 +193,4 @@ if __name__=='__main__':
     
     mode_list =['test']
     for k in range(len(mode_list)):
-        generate_patch(mode_list[k],patchsize=96,stride=52,bg_prob=0.05,nonzero=0.1)
+        generate_patch(mode_list[k],patchsize=48,stride=16,bg_prob=1)
