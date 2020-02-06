@@ -146,43 +146,21 @@ def draw_curve(work_dir,logger1,logger2):
     logger1 = logger1.read()
     logger2 = logger2.read()
 
-    epoch, total_loss1, classification_loss1, segmentation_loss1, iou1, dice1, sacc1, cacc1  = zip(*logger1)
-    epoch, total_loss2, classification_loss2, segmentation_loss2, iou2, dice2, sacc2, cacc2 = zip(*logger2)
+    epoch, loss1, iou1, dice1, sacc1 = zip(*logger1)
+    epoch, loss2, iou2, dice2, sacc2 = zip(*logger2)
 
     plt.figure(1)
-    plt.plot(epoch, total_loss1, 'navy', label='Train Total Loss')
-    plt.plot(epoch, total_loss2, 'darkorange', label='Validation Total Loss')
+    plt.plot(epoch, loss1, 'navy', label='Train Loss')
+    plt.plot(epoch, loss1, 'darkorange', label='Validation Loss')
     plt.grid()
 
     plt.xlabel('Epoch')
     plt.legend()
-    plt.title('Compare Total Loss')
+    plt.title('Compare Loss')
     plt.ylim(0.0, 1.0)
-    plt.savefig(os.path.join(work_dir, 'Total_Loss.png'))
+    plt.savefig(os.path.join(work_dir, 'Loss.png'))
 
     plt.figure(2)
-    plt.plot(epoch, classification_loss1, 'navy', label='Classification Train Loss')
-    plt.plot(epoch, classification_loss2, 'darkorange', label='Classification Validation Loss')
-    plt.grid()
-
-    plt.xlabel('Epoch')
-    plt.legend()
-    plt.title('Compare Classification Loss')
-    plt.ylim(0.6, 0.8)
-    plt.savefig(os.path.join(work_dir, 'Classification_Loss.png'))
-
-    plt.figure(3)
-    plt.plot(epoch, segmentation_loss1, 'navy', label='Segmentation Train Loss')
-    plt.plot(epoch, segmentation_loss2, 'darkorange', label='Segmentation Validation Loss')
-    plt.grid()
-
-    plt.xlabel('Epoch')
-    plt.legend()
-    plt.title('Compare Segmentation Loss')
-    plt.ylim(0.0, 0.5)
-    plt.savefig(os.path.join(work_dir, 'Segmentation_Loss.png'))
-
-    plt.figure(4)
     plt.plot(epoch, iou1, 'navy', label='Train IoU')
     plt.plot(epoch, iou2, 'darkorange', label='Validation IoU')
     plt.grid()
@@ -193,7 +171,7 @@ def draw_curve(work_dir,logger1,logger2):
     plt.ylim(0.0, 1.0)
     plt.savefig(os.path.join(work_dir, 'IoU.png'))
 
-    plt.figure(5)
+    plt.figure(3)
     plt.plot(epoch, dice1, 'navy', label='Train DICE Score')
     plt.plot(epoch, dice2, 'darkorange', label='Validation DICE Score')
     plt.grid()
@@ -204,7 +182,7 @@ def draw_curve(work_dir,logger1,logger2):
     plt.ylim(0.0, 1.0)
     plt.savefig(os.path.join(work_dir, 'DICE_Score.png'))
 
-    plt.figure(6)
+    plt.figure(4)
     plt.plot(epoch, sacc1, 'navy', label='Train Slice Level Accuracy')
     plt.plot(epoch, sacc2, 'darkorange', label='Validation Slice Level Accuracy')
     plt.grid()
@@ -214,17 +192,6 @@ def draw_curve(work_dir,logger1,logger2):
     plt.title('Compare Slice Level Accuracy')
     plt.ylim(0.5, 1.0)
     plt.savefig(os.path.join(work_dir, 'Slice_Level_Accuracy.png'))
-
-    plt.figure(7)
-    plt.plot(epoch, cacc1, 'navy', label='Train Classification Accuracy')
-    plt.plot(epoch, cacc2, 'darkorange', label='Validation Classification Accuracy')
-    plt.grid()
-
-    plt.xlabel('Epoch')
-    plt.legend()
-    plt.title('Compare Classification Accuracy')
-    plt.ylim(0.5, 1.0)
-    plt.savefig(os.path.join(work_dir, 'Classification_Accuracy.png'))
 
 
 def check_correct_forgget(output, target, ephoch,
