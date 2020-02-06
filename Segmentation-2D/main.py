@@ -7,21 +7,13 @@ import numpy as np
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torch.utils.data as data
-from dataloader import  load_kaggle_data_with_balanced, load_kaggle_data, Classification_Data, Segmentation_2d_data
+from losses import DiceLoss
+from dataloader import  Segmentation_2d_data
 from utils import Logger, AverageMeter, save_checkpoint ,draw_curve ,str2bool, History, Performance
 from model import *
-from losses import DiceLoss,tversky_loss, NLL_OHEM
 from optimizers import RAdam
-from torchvision import models
-from multiprocessing import Process
 from torch.utils.tensorboard import SummaryWriter
-from efficientnet_pytorch import EfficientNet
-from sampler import ImbalancedDatasetSampler
 import pandas as pd
-
-# Multi-Task-Learning Baseline
-# Based On * A Feature Transfer Enabled Multi-Task Deep Learning Model on Medical Imaging *
-# Fei Gao, Hyunsoo Yoon, Teresa Wu, Xianghua Chu
 
 parser = argparse.ArgumentParser()
 
@@ -57,9 +49,6 @@ parser.add_argument('--test-root', default=['/data2/sk_data/data_1rd/test_3d',
                                             '/data2/sk_data/data_5rd/test_3d'],
                     nargs='+', type=str)
 parser.add_argument('--file-name', default='result_train_s_test_s', type=str)
-
-# arguments for slack
-parser.add_argument("--kaggle", default=False, type=bool, help="If TRUE == load_kaggle_data_with_balanced, Else FALSE == Classification_Data with WeightedRandomSampler")
 parser.add_argument('--tenosrboardwriter', default="Test", type=str)
 parser.add_argument('--number', default="0", type=str)
 parser.add_argument('--aug', default="False", type=str)
@@ -76,10 +65,6 @@ def main():
     print(args.work_dir, args.exp)
     work_dir = os.path.join(args.work_dir, args.exp)
 
-    kaggle_path = "/data2/sk_data/kaggle_data/stage_1_train_images_png"
-    kaggle_csv_path = "/data2/sk_data/kaggle_data/bin_dataframe.csv"
-    label_data = pd.read_csv(kaggle_csv_path)
-
     if not os.path.exists(work_dir):
         os.makedirs(work_dir)
 
@@ -92,8 +77,8 @@ def main():
     train_filename = args.trn_root
     test_filename = args.test_root
 
-    trainset = MTL_data(train_filename)
-    valiset = MTL_data(test_filename)
+    trainset = Segmentation_2d_data(train_filename)
+    valiset = Segmentation_2d_data(test_filename)
 
     train_loader = data.DataLoader(trainset, batch_size=args.batch_size, num_workers=args.num_workers)
     valid_loader = data.DataLoader(valiset, batch_size=args.batch_size, num_workers=args.num_workers)
@@ -128,10 +113,6 @@ def main():
         criterion = nn.BCEWithLogitsLoss(pos_weight=torch.Tensor([args.bce_weight])).cuda()
     elif args.loss_function == 'dice':
         criterion = DiceLoss().cuda()
-    elif args.loss_function == 'tversky':
-        criterion = tversky_loss(alpha=args.tversky_alpha, beta=args.tversky_beta).cuda()
-    elif args.loss_function == 'NLL_OHEM':
-        criterion = NLL_OHEM(ratio=3, loss='bce').cuda()
     else:
         raise ValueError('{} loss is not supported yet.'.format(args.loss_function))
 
@@ -156,26 +137,21 @@ def main():
                                                   gamma=0.1)
     best_iou = 0
 
-    try:
-        for epoch in range(lr_schedule[-1]):
-            main_train(train_loader, net, criterion, optimizer, epoch, trn_logger, trn_raw_logger)
+    for epoch in range(lr_schedule[-1]):
+        segmentation_train(train_loader, net, criterion, optimizer, epoch, trn_logger, trn_raw_logger)
 
-            iou = validate(valid_loader, net, criterion_cls, criterion_seg, epoch, val_logger)
-            lr_scheduler.step()
+        iou = validate(valid_loader, net, criterion, epoch, val_logger)
+        lr_scheduler.step()
 
-            is_best = iou > best_iou
-            best_iou = max(iou, best_iou)
-            checkpoint_filename = 'model_checkpoint_{:0>3}.pth'.format(epoch + 1)
-            save_checkpoint({'epoch': epoch + 1,
-                             'state_dict': net.state_dict(),
-                             'optimizer': optimizer.state_dict()},
-                            is_best,
-                            work_dir,
-                            checkpoint_filename)
-    except RuntimeError as e:
-        print(e)
-        import ipdb
-        ipdb.set_trace()
+        is_best = iou > best_iou
+        best_iou = max(iou, best_iou)
+        checkpoint_filename = 'model_checkpoint_{:0>3}.pth'.format(epoch + 1)
+        save_checkpoint({'epoch': epoch + 1,
+                            'state_dict': net.state_dict(),
+                            'optimizer': optimizer.state_dict()},
+                        is_best,
+                        work_dir,
+                        checkpoint_filename)
 
     draw_curve(work_dir, trn_logger, val_logger)
 
@@ -208,10 +184,10 @@ def segmentation_train(trn_loader, model, criterion, optimizer, epoch, logger, s
         target = target.cuda()
 
         output = model(input)
-        loss = criterion(output_seg, target)
+        loss = criterion(output, target)
 
         # Segmentation Measure
-        pos_probs = torch.sigmoid(output_seg)
+        pos_probs = torch.sigmoid(output)
         pos_preds = (pos_probs > 0.5).float()
 
         p = 0
@@ -300,7 +276,7 @@ def validate(val_loader, model, criterion, epoch, logger):
 
             output  = model(input)
             loss = criterion(output, target)
-            iou, dice = performance(output_seg, target)
+            iou, dice = performance(output, target)
 
             losses.update(loss.item(), input.size(0))
             ious.update(iou, input.size(0))
