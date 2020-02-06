@@ -91,20 +91,13 @@ def main():
         net = Unet2D(in_shape=(args.multi_input, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
     elif args.arch == 'unetcoord':
         print('radious', args.radious, type(args.radious))
-        net = Unetcoordconv(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
+        net = Unet2D_coordconv(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
                             momentum=args.batchnorm_momentum, coordnumber=args.coordconv_no, radius=args.radious)
-    elif args.arch == 'UnetSkipConnection':
-        net = UnetSkipConnection(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
-                                 momentum=args.batchnorm_momentum, calculate=args.cal_mode)
-    elif args.arch == 'deeplab':
-        net = DeepLabv3_plus(nInputChannels=args.multi_input, n_classes=1, os=16, pretrained=True, _print=True,
-                             momentum=args.batchnorm_momentum)
     elif args.arch == 'unetmultiinput':
         net = Unet2D_multiinput(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
                                 momentum=args.batchnorm_momentum)
     elif args.arch == 'scse_block':
-        net = Unet_sae(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
-                       momentum=args.batchnorm_momentum, coordconv=True)
+        net = Unet_sae(in_shape=(args.multi_input, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
     else:
         raise ValueError('Not supported network.')
 
@@ -227,7 +220,7 @@ def segmentation_train(trn_loader, model, criterion, optimizer, epoch, logger, s
               'IoU {iou.val:.4f} ({iou.avg:.4f})\t'
               'Dice {dice.val:.4f} ({dice.avg:.4f})\t'
               'Slice Level ACC {slice:4f}\t'.format(
-            epoch, i, len(trn_loader), batch_time=batch_time, data_time=data_time, loss=losses.item(),
+            epoch, i, len(trn_loader), batch_time=batch_time, data_time=data_time, loss=losses,
             iou=ious, dice=dices, slice=slice_level_acc / total_data_counts))
 
         if i % 10 == 0:

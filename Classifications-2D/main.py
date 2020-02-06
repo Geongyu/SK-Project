@@ -53,8 +53,6 @@ parser.add_argument('--file-name', default='result_train_s_test_s', type=str)
 parser.add_argument("--kaggle", default=False, type=bool, help="If TRUE == load_kaggle_data_with_balanced, Else FALSE == Classification_Data with WeightedRandomSampler")
 parser.add_argument('--tenosrboardwriter', default="Test", type=str)
 parser.add_argument('--number', default="0", type=str)
-parser.add_argument('--aug', default="False", type=str)
-parser.add_argument('--smooth', default="False", type=str)
 
 args = parser.parse_args()
 
