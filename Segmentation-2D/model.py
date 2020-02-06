@@ -318,8 +318,8 @@ class Unet2D(nn.Module):
         x, x_trace4 = self.down4(x)
 
         x_bottom_block = self.center1(x)
-        x = self.center2(x_bottom_block)
-        x = self.up1(x, x_trace4)
+
+        x = self.up1(x_bottom_block, x_trace4)
         x = self.up2(x, x_trace3)
         x = self.up3(x, x_trace2)
         x = self.up4(x, x_trace1)
