@@ -17,10 +17,10 @@ from utils import Logger, AverageMeter, save_checkpoint ,draw_curve,send_slack_m
 
 #from models import *
 
-from unet3d.model_modify import UNet3D
+from model import UNet3D
 
 from utils import Logger, AverageMeter, save_checkpoint
-from unet3d.model_modify import UNet3D
+from model import UNet3D
 from unet3d.losses import DiceLoss
 from predict import main_test
 import random

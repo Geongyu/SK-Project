@@ -13,10 +13,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-from unet3d.model_modify import UNet3D
+from model import UNet3D
 from dataset import DatasetTest
 from utils import Logger, send_slack_message
-import pickle
+
 
 
 def predict(model, exam_root, input_stats, args=None):
