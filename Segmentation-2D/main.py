@@ -17,36 +17,35 @@ import pandas as pd
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--trn-root', default=['/data2/sk_data/data_1rd/trainvalid_3d',
-                                           '/data2/sk_data/data_2rd/trainvalid_3d',
-                                           '/data2/sk_data/data_3rd/trainvalid_3d',
-                                           '/data2/sk_data/data_4rd/trainvalid_3d',
-                                           '/data2/sk_data/data_5rd/trainvalid_3d',
+parser.add_argument('--trn-root', default=['/daintlab/data/sk_data/data_1rd/trainvalid_3d',
+                                           '/daintlab/data/sk_data/data_2rd/trainvalid_3d',
+                                           '/daintlab/data/sk_data/data_3rd/trainvalid_3d',
                                           ],nargs='+', type=str)
 
-parser.add_argument('--work-dir', default='/data1/workspace/geongyu')
-parser.add_argument('--exp',default="test4", type=str)
+parser.add_argument('--work-dir', default='/daintlab/workspace/geongyu/sk-test')
+parser.add_argument('--exp',default="/Segmentation/BaseTest", type=str)
 parser.add_argument('--data-mode', default='all', type=str) # label : use label data  / all : use all data
 
-parser.add_argument('--batch-size', default=16, type=int)
-parser.add_argument('--lr-schedule', default=[20,40], nargs='+', type=int)
-parser.add_argument('--initial-lr', default=0.1, type=float)
+parser.add_argument('--batch-size', default=28, type=int)
+parser.add_argument('--lr-schedule', default=[150,200], nargs='+', type=int)
+parser.add_argument('--initial-lr', default=0.0001, type=float)
 parser.add_argument('--weight-decay', default=0.0001, type=float)
-parser.add_argument('--loss-function', default='bce', type=str) # 'bce', 'dice'
-parser.add_argument('--optim-function', default='sgd', type=str)
+parser.add_argument('--loss-function', default='dice', type=str) # 'bce', 'dice'
+parser.add_argument('--optim-function', default='radam', type=str)
 parser.add_argument('--momentum',default=0.9, type=float)
 parser.add_argument('--bce-weight', default=1, type=int)
 parser.add_argument('--num-workers', default=12, type=int)
 parser.add_argument('--padding-size', default=1, type=int)
 parser.add_argument('--batchnorm-momentum', default=0.1, type=float)
 parser.add_argument('--arch', default='unet', type=str)
+parser.add_argument('--multi-input', default=1, type=int)
+parser.add_argument('--coordconv-no', default=[1,2], nargs='+', type=int)
+parser.add_argument('--radious', default=False ,type=str2bool)
 
 # arguments for test mode
-parser.add_argument('--test-root', default=['/data2/sk_data/data_1rd/test_3d',
-                                            '/data2/sk_data/data_2rd/test_3d',
-                                            '/data2/sk_data/data_3rd/test_3d',
-                                            '/data2/sk_data/data_4rd/test_3d',
-                                            '/data2/sk_data/data_5rd/test_3d'],
+parser.add_argument('--test-root', default=['/daintlab/data/sk_data/data_1rd/test_3d',
+                                            '/daintlab/data/sk_data/data_2rd/test_3d',
+                                            '/daintlab/data/sk_data/data_3rd/test_3d'],
                     nargs='+', type=str)
 parser.add_argument('--file-name', default='result_train_s_test_s', type=str)
 parser.add_argument('--tenosrboardwriter', default="Test", type=str)
@@ -88,16 +87,15 @@ def main():
     val_logger = Logger(os.path.join(work_dir, 'validation.log'))
 
     if args.arch == 'unet':
-        net = Unet2D(in_shape=(args.multi_input, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
+        net = Unet2D(in_shape=(1, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
     elif args.arch == 'unetcoord':
-        print('radious', args.radious, type(args.radious))
-        net = Unet2D_coordconv(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
-                            momentum=args.batchnorm_momentum, coordnumber=args.coordconv_no, radius=args.radious)
+        net = Unet2D_coordconv(in_shape=(1, 512, 512), padding=args.padding_size,
+                            momentum=args.batchnorm_momentum, coordnumber=args.coordconv_no, radius=False)
     elif args.arch == 'unetmultiinput':
-        net = Unet2D_multiinput(in_shape=(args.multi_input, 512, 512), padding=args.padding_size,
+        net = Unet2D_multiinput(in_shape=(1, 512, 512), padding=args.padding_size,
                                 momentum=args.batchnorm_momentum)
     elif args.arch == 'scse_block':
-        net = Unet_sae(in_shape=(args.multi_input, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
+        net = Unet_sae(in_shape=(1, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
     else:
         raise ValueError('Not supported network.')
 
@@ -170,7 +168,7 @@ def segmentation_train(trn_loader, model, criterion, optimizer, epoch, logger, s
     train_history = History(len(trn_loader.dataset))
     length_data = 0
 
-    for i, (input, target) in enumerate(trn_loader):
+    for i, (input, target, idx) in enumerate(trn_loader):
         data_time.update(time.time() - end)
 
         input = input.cuda()
@@ -212,16 +210,17 @@ def segmentation_train(trn_loader, model, criterion, optimizer, epoch, logger, s
 
         pos_probs = torch.sigmoid(output)
         pos_preds = (pos_probs > 0.5).float()
+        #import ipdb; ipdb.set_trace()
 
-        print('Training Epoch: [{0}][{1}/{2}]\t'
+        print('Epoch: [{0}][{1}/{2}]\t'
               'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
               'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-              'Loss {loss:.4f}({loss.avg:.4f})\t'
+              'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
               'IoU {iou.val:.4f} ({iou.avg:.4f})\t'
-              'Dice {dice.val:.4f} ({dice.avg:.4f})\t'
-              'Slice Level ACC {slice:4f}\t'.format(
-            epoch, i, len(trn_loader), batch_time=batch_time, data_time=data_time, loss=losses,
-            iou=ious, dice=dices, slice=slice_level_acc / total_data_counts))
+              'Dice {dice.val:.4f} ({dice.avg:.4f})\t'.format(
+            epoch, i, len(trn_loader), batch_time=batch_time,
+            data_time=data_time, loss=losses,
+            iou=ious, dice=dices))
 
         if i % 10 == 0:
             sublogger.write([epoch, i, loss.item(), iou, dice])
@@ -263,7 +262,7 @@ def validate(val_loader, model, criterion, epoch, logger):
         end = time.time()
         slice_level_acc = 0
         total_data_counts = 0
-        for i, (input, target) in enumerate(val_loader):
+        for i, (input, target, idx) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
 
