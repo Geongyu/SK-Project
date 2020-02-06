@@ -1,4 +1,3 @@
-
 import os
 import argparse
 import json
@@ -9,6 +8,7 @@ import torch.backends.cudnn as cudnn
 
 import numpy as np
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -20,7 +20,6 @@ import pickle
 
 
 def predict(model, exam_root, input_stats, args=None):
-
     tst_dataset = DatasetTest(exam_root, options=args, input_stats=input_stats)
     tst_loader = torch.utils.data.DataLoader(tst_dataset,
                                              batch_size=args.batch_size,
@@ -28,8 +27,8 @@ def predict(model, exam_root, input_stats, args=None):
                                              num_workers=4)
 
     # original input and target
-    org_input_3d = tst_dataset.input_3d # [0,255]
-    org_target_3d = tst_dataset.target_3d # [0,1]
+    org_input_3d = tst_dataset.input_3d  # [0,255]
+    org_target_3d = tst_dataset.target_3d  # [0,1]
 
     # padding info
     upper_padding_size = tst_dataset.upper_padding_size
@@ -45,7 +44,6 @@ def predict(model, exam_root, input_stats, args=None):
 
     with torch.no_grad():
         for i, (input_patch, index_patch) in enumerate(tst_loader):
-
             input_patch = input_patch.cuda()
             output_patch = model(input_patch)
 
@@ -64,6 +62,7 @@ def predict(model, exam_root, input_stats, args=None):
 
     return output_prob, org_input_3d, org_target_3d
 
+
 def seperate_dict(ori_dict, serch_list):
     new_dict = {}
     for i in serch_list:
@@ -71,8 +70,8 @@ def seperate_dict(ori_dict, serch_list):
             new_dict[i] = ori_dict[i]
     return new_dict
 
-def performance_by_slice(output_3d, target_3d):
 
+def performance_by_slice(output_3d, target_3d):
     preds = (output_3d > 0.5).astype('float')
 
     performance = {}
@@ -105,20 +104,20 @@ def performance_by_slice(output_3d, target_3d):
 
         # TODO: not need to store gt and pred
         performance[str(slice_idx)] = {'cls': [tp, fp, tn, fn],
-                                  'seg': [iou, dice],
-                                  'gt': slice_target,
-                                  'pred': slice_pred}
+                                       'seg': [iou, dice],
+                                       'gt': slice_target,
+                                       'pred': slice_pred}
     return performance
 
-def compute_overall_performance(collated_performance):
 
+def compute_overall_performance(collated_performance):
     confusion_matrix = np.zeros((4,))
     iou_sum = dice_sum = n_valid_slices = 0
-    
+
     for res_exam in collated_performance.values():
         for res_slice in res_exam.values():
             confusion_matrix += np.array(res_slice['cls'])
-            if res_slice['gt'].sum() != 0: # consider only annotated slices
+            if res_slice['gt'].sum() != 0:  # consider only annotated slices
                 iou_sum += res_slice['seg'][0]
                 dice_sum += res_slice['seg'][1]
                 n_valid_slices += 1
@@ -130,18 +129,18 @@ def compute_overall_performance(collated_performance):
             'slice_level_accuracy': (confusion_matrix[0] + confusion_matrix[2]) / confusion_matrix.sum(),
             'segmentation_performance': [iou_mean, dice_mean]}
 
+
 def save_fig(exam_id, org_input, org_target, prediction,
              slice_level_performance, result_dir):
-
     def _overlay_mask(img, mask, color='red'):
 
         # convert gray to color
         color_img = np.dstack([img, img, img])
         mask_idx = np.where(mask == 1)
         if color == 'red':
-            color_img[mask_idx[0], mask_idx[1], :] = np.array([255,0,0])
+            color_img[mask_idx[0], mask_idx[1], :] = np.array([255, 0, 0])
         elif color == 'blue':
-            color_img[mask_idx[0], mask_idx[1], :] = np.array([0,0,255])
+            color_img[mask_idx[0], mask_idx[1], :] = np.array([0, 0, 255])
 
         return color_img
 
@@ -151,12 +150,11 @@ def save_fig(exam_id, org_input, org_target, prediction,
 
     n_slices = org_input.shape[0]
     assert (n_slices == org_target.shape[0] \
-                     == prediction.shape[0] \
-                     == len(slice_level_performance)), '# of results not matched.'
+            == prediction.shape[0] \
+            == len(slice_level_performance)), '# of results not matched.'
 
     # convert prob to pred
     prediction = (prediction > 0.5).astype('float')
-
 
     for slice_id in slice_level_performance:
         iou, dice = slice_level_performance[slice_id]['seg']
@@ -164,16 +162,16 @@ def save_fig(exam_id, org_input, org_target, prediction,
         target_slice = org_target[int(slice_id), :, :]
         pred_slice = prediction[int(slice_id), :, :]
 
-        fig = plt.figure(figsize=(15,5))
+        fig = plt.figure(figsize=(15, 5))
         ax = []
         # show original img
-        ax.append(fig.add_subplot(1,3,1))
+        ax.append(fig.add_subplot(1, 3, 1))
         plt.imshow(input_slice, 'gray')
         # show img with gt
-        ax.append(fig.add_subplot(1,3,2))
+        ax.append(fig.add_subplot(1, 3, 2))
         plt.imshow(_overlay_mask(input_slice, target_slice, color='red'))
         # show img with pred
-        ax.append(fig.add_subplot(1,3,3))
+        ax.append(fig.add_subplot(1, 3, 3))
         plt.imshow(_overlay_mask(input_slice, pred_slice, color='blue'))
         ax[-1].set_title('IoU = {0:.4f}'.format(iou))
 
@@ -191,8 +189,8 @@ def save_fig(exam_id, org_input, org_target, prediction,
         plt.savefig(res_img_path, bbox_inches='tight')
         plt.close()
 
-def main_test(model=None, args=None, val_mode=False):
 
+def main_test(model=None, args=None, val_mode=False):
     work_dir = os.path.join(args.work_dir, args.exp)
     file_name = args.file_name
     if not val_mode:
@@ -204,7 +202,8 @@ def main_test(model=None, args=None, val_mode=False):
         # Note: here, the model should be given manually
         # TODO: try to import model configuration later
         if model is None:
-            model = UNet3D(1, 1, f_maps=args.f_maps, depth_stride = args.depth_stride, conv_layer_order='cbr',num_groups=1)
+            model = UNet3D(1, 1, f_maps=args.f_maps, depth_stride=args.depth_stride, conv_layer_order='cbr',
+                           num_groups=1)
             model = nn.DataParallel(model).cuda()
 
         # load model
@@ -214,11 +213,9 @@ def main_test(model=None, args=None, val_mode=False):
         model.load_state_dict(state['state_dict'])
         cudnn.benchmark = True
 
+    input_stats = np.load(os.path.join(work_dir, 'input_stats.npy'), allow_pickle=True).tolist()
 
-    input_stats = np.load(os.path.join(work_dir, 'input_stats.npy'),allow_pickle=True).tolist()
-
-
-    #return overall_performance
+    # return overall_performance
 
     if not val_mode:
         # filepath
@@ -244,7 +241,7 @@ def main_test(model=None, args=None, val_mode=False):
                                '441', '433', '405', '459', '450', '514', '513', '410'],
                 'overal_2th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
                                '441', '433', '405', '459', '450', '514', '513', '410']
-                              + ['52_KMK', '483', '29_MOY','46_YMS', '40_LSH', '534','8_KYK', '535', '536', '500'],
+                              + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
                 'overal_3th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
                                '441', '433', '405', '459', '450', '514', '513', '410']
                               + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500']
@@ -254,8 +251,6 @@ def main_test(model=None, args=None, val_mode=False):
             }
 
         }
-
-
 
         # list exam ids
         collated_performance = {}
@@ -269,35 +264,32 @@ def main_test(model=None, args=None, val_mode=False):
                 # measure performance
                 performance = performance_by_slice(prediction_list, org_target_list)
 
-
                 # find folder
-                find_folder=''
-                count=0
-                for name, age in allData_dic.items():
-                    for key, val in age.items():
-                        if exam_id in val:
-                            if 'overal' in key.split('_'): # prevent duplicate data save
+                find_folder = ''
+                count = 0
+                for data_no, level_no in allData_dic.items():
+                    for level_key, level_val in level_no.items():
+                        if exam_id in level_val:
+                            if 'overal' in level_key.split('_'):  # prevent duplicate data save
                                 continue
-                            find_folder=key
-                            count+=1
-                assert count ==1,'duplicate folder'
+                            find_folder = level_key
+                            count += 1
+                assert count == 1, 'duplicate folder'
 
                 result_dir_sep = os.path.join(result_dir, find_folder)
-                #save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
+                # save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
 
                 collated_performance[exam_id] = performance
 
-
-
-        for name, age in allData_dic.items():
-            for key, val in age.items():
-                sep_dict = seperate_dict(collated_performance, val)
-                if len(sep_dict) ==0:
+        for data_no, level_no in allData_dic.items():
+            for level_key, level_val in level_no.items():
+                sep_dict = seperate_dict(collated_performance, level_val)
+                if len(sep_dict) == 0:
                     continue
-                dd_performance = compute_overall_performance(sep_dict)
+                sep_performance = compute_overall_performance(sep_dict)
 
-                with open(os.path.join(result_dir, '{}_performance.json'.fomat(key)), 'w') as f:
-                    json.dump(dd_performance, f)
+                with open(os.path.join(result_dir, '{}_performance.json'.fomat(level_key)), 'w') as f:
+                    json.dump(sep_performance, f)
 
 
 #
@@ -461,15 +453,14 @@ def main_test(model=None, args=None, val_mode=False):
 #         with open(os.path.join(result_dir, 'performance.json'), 'w') as f:
 #             json.dump(overall_performance, f)
 #     """
-if __name__=='__main__':
-
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--test-root', default=['/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
-                                                #'/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
-                                                #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d'
+                                                # '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
+                                                # '/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d'
                                                 ], nargs='+', type=str)
-    parser.add_argument('--input-size', default=[48,96,96], nargs='+', type=int)
-    parser.add_argument('--stride-test', default=[1,16,16], nargs='+', type=int)
+    parser.add_argument('--input-size', default=[48, 96, 96], nargs='+', type=int)
+    parser.add_argument('--stride-test', default=[1, 16, 16], nargs='+', type=int)
 
     parser.add_argument('--f-maps', default=[32, 64, 128, 256], nargs='+', type=int)
     parser.add_argument('--depth-stride', default=[2, 2, 2, 2], nargs='+', type=int)
@@ -482,7 +473,6 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-
     main_test(args=args)
 
-    
+
