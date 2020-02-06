@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from model import *
-from dataloader import CustomDataset2d, CustomDataset2d_All
+from dataloader import *
 from utils import Logger,str2bool
 import ipdb
 from torch.utils.tensorboard import SummaryWriter
@@ -128,42 +128,9 @@ def main_test(model=None, args=None, val_mode=False):
     threshold = 100
 
 
-    #2 draw histogram
-    draw_overall_histogram(count_pixel_dic, result_dir, threshold, total_img)
-    # tp, fp, tn, fn
-    confusion_gt_list = [count_pixel_dic['tp_pixel_gt'], count_pixel_dic['fp_pixel_gt'],count_pixel_dic['tn_pixel_gt'], count_pixel_dic['fn_pixel_gt']]
-    confusion_pred_list = [ count_pixel_dic['tp_pixel_pred'],count_pixel_dic['fp_pixel_pred'],count_pixel_dic['tn_pixel_pred'],count_pixel_dic['fn_pixel_pred']]
-
-    confusion_data_gt_title = ['tp_pixel_gt',  'fp_pixel_gt', 'tn_pixel_gt', 'fn_pixel_gt', ]
-    confusion_data_pred_title = ['tp_pixel_pred','fp_pixel_pred','tn_pixel_pred','fn_pixel_pred' ]
-
-    confusion_count_pixel_li = []
-    for k in range(len(confusion_gt_list)):
-
-        confusion_gt_under100, confusion_gt_over100, confusion_pred_under100, confusion_pred_over100 = confusion_count_pixel(confusion_gt_list[k], confusion_pred_list[k], threshold, total_img
-                                                                                                                             ,title_name=confusion_data_gt_title[k].split('_')[0])
-        confusion_count_pixel_li.append([len(confusion_gt_under100),len(confusion_gt_over100),len(confusion_pred_under100),len(confusion_pred_over100)])
-
-        confusion_make_bar(confusion_gt_list[k], color='red', result_dir=result_dir, file_name=confusion_data_gt_title[k],
-                           title_name='GT_pos pixel : pix <=100')
-        confusion_make_bar(confusion_pred_list[k], color='blue', result_dir=result_dir, file_name=confusion_data_pred_title[k],
-                           title_name='Pred_pos pixel : pix <=100')
-
-
-
-    #save csv
-    import pandas as pd
-    save_data_frame = pd.DataFrame(data=confusion_count_pixel_li,index = ['gt pix <=100 ','gt pix >100 ','pred pix <=100 ','pred pix >100 '],
-                               columns = ['tp','fp','tn','fn'])
-
-    res_img_path = os.path.join(result_dir, '{}.csv'.format('save_confusion_pixel_result'))
-    save_data_frame.to_csv(res_img_path , mode ='w')
-
-
-
 
 def predict(model, exam_root, input_stats, args=None):
-    tst_dataset = CustomDataset2d_All(exam_root, input_stats=input_stats,mode='test',inputnum=args.multi_input)
+    tst_dataset = Segmentation_2d_data(exam_root)
     tst_loader = torch.utils.data.DataLoader(tst_dataset,
                                              batch_size=1,
                                              shuffle=False,
