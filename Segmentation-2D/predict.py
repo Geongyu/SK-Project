@@ -199,8 +199,7 @@ def main_test(model=None, args=None, val_mode=False):
         # Note: here, the model should be given manually
         # TODO: try to import model configuration later
         if model is None:
-            model = UNet3D(1, 1, f_maps=args.f_maps, depth_stride=args.depth_stride, conv_layer_order='cbr',
-                           num_groups=1)
+            model = Unet_sae((1, 512, 512))
             model = nn.DataParallel(model).cuda()
 
         # load model
