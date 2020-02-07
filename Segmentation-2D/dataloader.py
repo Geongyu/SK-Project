@@ -14,7 +14,9 @@ def find_file(file_root):
     # Find All interesting Files
     root_folder = file_root
     sub_folder_image = []
+    
     for folders in root_folder :
+        print(root_folder)
         check = os.listdir(folders + "/images")
         for folder in check :
             sub_folder_image.append(folders + "/images/" + str(folder))
@@ -26,6 +28,20 @@ def find_file(file_root):
         file_list_mask = [file.replace("images", "masks").replace(".png", "_mask.gif") for file in image_file_list if file.endswith(".png") or file.endswith(".gif")]
         image_file_path += file_list_img
         target_file_path += file_list_mask
+
+    image_file_path.sort()
+    target_file_path.sort()
+
+    return image_file_path, target_file_path
+
+def find_file2(file_root):
+    image_file_path = []
+    target_file_path = []
+    image_file_list = glob.glob(file_root + "/*")
+    file_list_img = [file for file in image_file_list if file.endswith(".png") or file.endswith(".gif")]
+    file_list_mask = [file.replace("images", "masks").replace(".png", "_mask.gif") for file in image_file_list if file.endswith(".png") or file.endswith(".gif")]
+    image_file_path += file_list_img
+    target_file_path += file_list_mask
 
     image_file_path.sort()
     target_file_path.sort()
@@ -164,7 +180,7 @@ class Segmentation_test_data(Dataset) :
         self.transforms1 = transforms.ToTensor()
         self.transforms2 = transforms.Normalize([0.5], [0.5])
         self.file_root = exam_root
-        self.image_path, self.target_path = find_file(self.file_root)
+        self.image_path, self.target_path = find_file2(self.file_root)
 
     def __len__(self) :
         return len(self.image_path)

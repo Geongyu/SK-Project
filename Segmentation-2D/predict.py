@@ -32,12 +32,12 @@ def predict(model, exam_root, args=None):
     input_img_list = []
     target_img_list = []
     model.eval()
+
     with torch.no_grad():
         for i, (input, target, ori_img, idx) in enumerate(tst_loader):
 
             input = input.cuda()
-            #import ipdb; ipdb.set_trace()
-            output, _ = model(input)
+            output = model(input)
 
             # convert to prob
 
@@ -118,6 +118,7 @@ def compute_overall_performance(collated_performance):
                 iou_sum += res_slice['seg'][0]
                 dice_sum += res_slice['seg'][1]
                 n_valid_slices += 1
+    
 
     iou_mean = iou_sum / n_valid_slices
     dice_mean = dice_sum / n_valid_slices
@@ -126,18 +127,18 @@ def compute_overall_performance(collated_performance):
             'slice_level_accuracy': (confusion_matrix[0] + confusion_matrix[2]) / confusion_matrix.sum(),
             'segmentation_performance': [iou_mean, dice_mean]}
 
-
 def save_fig(exam_id, org_input, org_target, prediction,
-             slice_level_performance, result_dir):
+             slice_level_performance, result_dir,save_mode=None):
+
     def _overlay_mask(img, mask, color='red'):
 
         # convert gray to color
         color_img = np.dstack([img, img, img])
         mask_idx = np.where(mask == 1)
         if color == 'red':
-            color_img[mask_idx[0], mask_idx[1], :] = np.array([255, 0, 0])
+            color_img[mask_idx[0], mask_idx[1], :] = np.array([255,0,0])
         elif color == 'blue':
-            color_img[mask_idx[0], mask_idx[1], :] = np.array([0, 0, 255])
+            color_img[mask_idx[0], mask_idx[1], :] = np.array([0,0,255])
 
         return color_img
 
@@ -145,32 +146,64 @@ def save_fig(exam_id, org_input, org_target, prediction,
     if not os.path.exists(result_exam_dir):
         os.makedirs(result_exam_dir)
 
-    n_slices = org_input.shape[0]
-    assert (n_slices == org_target.shape[0] \
-            == prediction.shape[0] \
-            == len(slice_level_performance)), '# of results not matched.'
+
+
+    assert (len(org_target) == len(prediction) \
+                     == len(slice_level_performance)), '# of results not matched.'
+
+
+
 
     # convert prob to pred
+
+    prediction = np.array(prediction)
     prediction = (prediction > 0.5).astype('float')
 
-    for slice_id in slice_level_performance:
-        iou, dice = slice_level_performance[slice_id]['seg']
-        input_slice = org_input[int(slice_id), :, :]
-        target_slice = org_target[int(slice_id), :, :]
-        pred_slice = prediction[int(slice_id), :, :]
 
-        fig = plt.figure(figsize=(15, 5))
+    for slice_id in slice_level_performance:
+        #ipdb.set_trace()
+        #'cls': [tp, fp, tn, fn]
+        # save fp
+        if save_mode :
+            if save_mode == 'tp':
+                if slice_level_performance['0']['cls'][0] != 1:
+                    continue
+            elif save_mode == 'fp':
+                if slice_level_performance['0']['cls'][1] != 1:
+                    continue
+            elif save_mode == 'tn':
+                if slice_level_performance['0']['cls'][2] != 1:
+                    continue
+            elif save_mode == 'fn':
+                if slice_level_performance['0']['cls'][3] != 1:
+                    continue
+
+
+        iou, dice = slice_level_performance[slice_id]['seg']
+        input_slice = org_input[int(slice_id)]
+        target_slice = org_target[int(slice_id)]
+        pred_slice = prediction[int(slice_id)]
+
+        target_slice_pos_pixel =  target_slice.sum() /(512*512)
+        target_slice_pos_pixel_rate = np.round(target_slice_pos_pixel*100,2)
+
+        pred_slice_pos_pixel = pred_slice.sum() / (512 * 512)
+        pred_slice_pos_pixel_rate = np.round(pred_slice_pos_pixel * 100, 2)
+
+
+        fig = plt.figure(figsize=(15,5))
         ax = []
         # show original img
-        ax.append(fig.add_subplot(1, 3, 1))
+        ax.append(fig.add_subplot(1,3,1))
         plt.imshow(input_slice, 'gray')
         # show img with gt
-        ax.append(fig.add_subplot(1, 3, 2))
+        ax.append(fig.add_subplot(1,3,2))
         plt.imshow(_overlay_mask(input_slice, target_slice, color='red'))
+        ax[1].set_title("Ground Turth Image")
         # show img with pred
-        ax.append(fig.add_subplot(1, 3, 3))
+        ax.append(fig.add_subplot(1,3,3))
         plt.imshow(_overlay_mask(input_slice, pred_slice, color='blue'))
-        ax[-1].set_title('IoU = {0:.4f} \n Dice = {1:.4f} '.format(iou,dice))
+        ax[-1].set_title('Predict Image \n IoU = {0:.4f} \ Dice = {1:.4f}'.format(iou, dice))
 
         # remove axis
         for i in ax:
@@ -185,7 +218,6 @@ def save_fig(exam_id, org_input, org_target, prediction,
                                         'FILE{slice_id:0>4}_{iou:.4f}.png'.format(slice_id=slice_id, iou=iou))
         plt.savefig(res_img_path, bbox_inches='tight')
         plt.close()
-
 
 def main_test(model=None, args=None, val_mode=False):
     work_dir = os.path.join(args.work_dir, args.exp)
@@ -268,10 +300,11 @@ def main_test(model=None, args=None, val_mode=False):
                                 continue
                             find_folder = level_key
                             count += 1
+                #import ipdb; ipdb.set_trace()
                 assert count == 1, 'duplicate folder'
 
                 result_dir_sep = os.path.join(result_dir, find_folder)
-                # save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
+                save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
 
                 collated_performance[exam_id] = performance
 
@@ -288,9 +321,11 @@ def main_test(model=None, args=None, val_mode=False):
 
 
 
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test-root', default=['/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
+    parser.add_argument('--test-root', default=['/daintlab/data/sk_data/data_1rd/test_3d',
                                                 # '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
                                                 # '/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d'
                                                 ], nargs='+', type=str)
@@ -302,12 +337,13 @@ if __name__ == '__main__':
     parser.add_argument('--augment', default=None, nargs='+', type=str)
     parser.add_argument('--target-depth-for-padding', default=None, type=int)
     parser.add_argument('--batch-size', default=1, type=int)
-    parser.add_argument('--work-dir', default='/data1/JM/segmentation_3d')
+    parser.add_argument('--work-dir', default='/daintlab/workspace/geongyu/sk-test')
     parser.add_argument('--exp', type=str)
     parser.add_argument('--file-name', default='test_delete_ok', type=str)
 
     args = parser.parse_args()
 
     main_test(args=args)
+
 
 
