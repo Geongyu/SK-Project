@@ -37,7 +37,7 @@ parser.add_argument('--exp', type=str)
 
 
 parser.add_argument('--batch-size', default=64, type=int)
-parser.add_argument('--input-size', default=[48,96,96], nargs='+', type=int)
+parser.add_argument('--input-size', default=[48,48,48], nargs='+', type=int)
 parser.add_argument('--augment', default=None, nargs='+', type=str)
 parser.add_argument('--crop-size', default=None, nargs='+', type=int)
 parser.add_argument('--lr-schedule', default=[20,30,35], nargs='+', type=int)
