@@ -121,4 +121,15 @@ python main.py \
 | save_path 	| [str] 	| ./res110_cifar10_softmax/	|
 
 
+### Reference
+[1] U-Net: Convolutional Networks for Biomedical Image Segmentation (Ronneberrger et al.)
+[2] 3D U-Net: learning dense volumetric segmentation from sparse annotation (Abdulkadir et al.)
+[3] EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks (Tan et al.)
+[4] A Novel Focal Tversky loss function with improved Attention U-Net for lesion segmentation (Abraham and Khan)
+[5] Concurrent Spatial and Channel Squeeze & Excitation in Fully Convolutional Network (Roy et al.)
+[6] An intriguring falling of convolutional neural networks and the coordconv solution (Liu et al.)
+
+
+
+
 
