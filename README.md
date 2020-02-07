@@ -1,13 +1,13 @@
 # SK-Project Brain Hemorrhage Segmentation 
 
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="92" height="20"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="92" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path fill="#555" d="M0 0h69v20H0z"/><path fill="#007ec6" d="M69 0h23v20H69z"/><path fill="url(#b)" d="M0 0h92v20H0z"/></g><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110"> <text x="355" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="590">SK-Project</text><text x="355" y="140" transform="scale(.1)" textLength="590">SK-Project</text><text x="795" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="130">v1</text><text x="795" y="140" transform="scale(.1)" textLength="130">v1</text></g> </svg>
 
 ## Information
 ### Measures
 - Accuracy
 - DICE Coefficient
 - Jaccard Coefficient (IoU)
-- Slice-Level-Accuracy (For Segmentation 2D,)
+- Slice-Level-Accuracy (For Segmentation 2D)
+  If model found Hemorrhage Pixel(at least 1 pixels), then get more accuracy
 
 ### Data Description 
 - SK Dataset
@@ -33,18 +33,16 @@
 * python main.py --save_path ./densenet_BC_cifar10/entropy/ --model densenet_BC --data cifar10 --rank_target entropy --epochs 200 --scheduler 2 --gpu_id 0
 ```
 python main.py \
---epochs 300 \
---batch_size 128 \
---scheduler 1 \
+--epochs 200 \
+--batch_size 4 * n (n is Number of GPUs) \
+--scheduler [100 150 200] \
 --lr 0.1 \
 --weight_decay 0.0001 \
 --momentum 0.9 \
 --nesterov False \
---gpu_id 0 \
---model res110 \
---data cifar10 \
---rank_target softmax \
---rank_weight 1.0 \
+--gpu_id 0,1,2,3 \
+--model Unet \
+--data sk-datasets \
 --save_path ./res110_cifar10_softmax/
 ```
 | Args 	| Options 	| Description 	|
