@@ -14,7 +14,9 @@ def find_file(file_root):
     # Find All interesting Files
     root_folder = file_root
     sub_folder_image = []
+    
     for folders in root_folder :
+        print(root_folder)
         check = os.listdir(folders + "/images")
         for folder in check :
             sub_folder_image.append(folders + "/images/" + str(folder))
@@ -26,6 +28,20 @@ def find_file(file_root):
         file_list_mask = [file.replace("images", "masks").replace(".png", "_mask.gif") for file in image_file_list if file.endswith(".png") or file.endswith(".gif")]
         image_file_path += file_list_img
         target_file_path += file_list_mask
+
+    image_file_path.sort()
+    target_file_path.sort()
+
+    return image_file_path, target_file_path
+
+def find_file2(file_root):
+    image_file_path = []
+    target_file_path = []
+    image_file_list = glob.glob(file_root + "/*")
+    file_list_img = [file for file in image_file_list if file.endswith(".png") or file.endswith(".gif")]
+    file_list_mask = [file.replace("images", "masks").replace(".png", "_mask.gif") for file in image_file_list if file.endswith(".png") or file.endswith(".gif")]
+    image_file_path += file_list_img
+    target_file_path += file_list_mask
 
     image_file_path.sort()
     target_file_path.sort()
@@ -159,6 +175,33 @@ class Segmentation_2d_data(Dataset) :
 
         return image, label, idx
 
+class Segmentation_test_data(Dataset) :
+    def __init__(self, exam_root) :
+        self.transforms1 = transforms.ToTensor()
+        self.transforms2 = transforms.Normalize([0.5], [0.5])
+        self.file_root = exam_root
+        self.image_path, self.target_path = find_file2(self.file_root)
+
+    def __len__(self) :
+        return len(self.image_path)
+
+    def give_the_epoch(self, epoch=0) :
+        self.epoch = epoch
+
+    def __getitem__(self, idx):
+
+        image = Image.open(self.image_path[idx])
+        ori_image = self.transforms1(image)
+        label = Image.open(self.target_path[idx])
+        label = np.array(label, dtype=np.uint8)
+        label = (label != 0) * 1.0
+        image = self.transforms1(image)
+        image = self.transforms2(image)
+        label = self.transforms1(label)
+
+        return image, label, ori_image, idx
+
+
 
 if __name__=='__main__':
 
@@ -174,7 +217,7 @@ if __name__=='__main__':
                 '/data2/sk_data/data_4rd/test_3d',
                 '/data2/sk_data/data_5rd/test_3d']
 
-    trainset = Segmentation_3d_data(exam_root)
+    trainset = Segmentation_test_data(exam_root)
 
     trainloader = torch.utils.data.DataLoader(trainset,
                                              batch_size=36,
