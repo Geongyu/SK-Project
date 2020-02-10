@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser()
 
 # arguments for training
 parser.add_argument('--trn-root', default='/data1/JM/sk_project/data2th_trainvalid_3d_patches_48_48_48_st_16_bg_0.1_nonzero_0.1')
-parser.add_argument('--val-root', default='/data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1')
+parser.add_argument('--tst-root', default='/data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1')
 parser.add_argument('--work-dir', default='/data1/JM/sk_project/Segmentation-3D')
 parser.add_argument('--exp', type=str)
 
@@ -38,8 +38,6 @@ parser.add_argument('--exp', type=str)
 
 parser.add_argument('--batch-size', default=64, type=int)
 parser.add_argument('--input-size', default=[48,48,48], nargs='+', type=int)
-parser.add_argument('--augment', default=None, nargs='+', type=str)
-parser.add_argument('--crop-size', default=None, nargs='+', type=int)
 parser.add_argument('--lr-schedule', default=[20,30,35], nargs='+', type=int)
 parser.add_argument('--weight-decay', default=0.0005, type=float)
 
@@ -55,7 +53,7 @@ parser.add_argument('--optim', default='sgd', type=str)
 
 
 # arguments for model
-parser.add_argument('--arch', default='unet', type=str)
+parser.add_argument('--model', default='unet', type=str)
 parser.add_argument('--f-maps', default=[32, 64, 128, 256], nargs='+', type=int)
 
 parser.add_argument('--conv-layer-order', default='cbr', type=str)
@@ -66,7 +64,7 @@ parser.add_argument('--depth-stride', default=[2, 2, 2, 2], nargs='+', type=int)
 # arguments for test mode
 parser.add_argument('--test-root', default=['/data2/woans0104/sk_hemorrhage_dataset/data_1rd',
                                             '/data2/woans0104/sk_hemorrhage_dataset/data_2rd',
-                                            '/data2/woans0104/sk_hemorrhage_dataset/data_3rd'], nargs='+', type=str)
+                                            ], nargs='+', type=str)
 parser.add_argument('--stride-test', default=None, nargs='+', type=int) #default=[1,16,16])
 parser.add_argument('--target-depth-for-padding', default=None, type=int)
 parser.add_argument('--inplace-test', default=1, type=int)
@@ -112,7 +110,7 @@ def main():
     np.save(os.path.join(work_dir, 'input_stats.npy'), trn_dataset.input_stats)
 
     # val_dataset
-    val_dataset = DatasetVal(args.trn_root,val_exam_ids, options=args, input_stats=trn_dataset.input_stats)
+    val_dataset = DatasetVal(args.tst_root,val_exam_ids, options=args, input_stats=trn_dataset.input_stats)
     val_loader = torch.utils.data.DataLoader(val_dataset,
                                             batch_size=args.batch_size,
                                              shuffle=True,
@@ -126,7 +124,7 @@ def main():
 
 
     # model_select
-    if args.arch == 'unet':
+    if args.model == 'unet':
         net = UNet3D(1, 1, f_maps=args.f_maps, depth_stride=args.depth_stride,
                     conv_layer_order=args.conv_layer_order,
                     num_groups=args.num_groups)

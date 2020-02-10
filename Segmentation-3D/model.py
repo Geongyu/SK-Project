@@ -41,9 +41,9 @@ class UNet3D(nn.Module):
                  **kwargs):
         super(UNet3D, self).__init__()
 
-        if isinstance(f_maps, int):
-            # use 4 levels in the encoder path as suggested in the paper
-            f_maps = create_feature_maps(f_maps, number_of_fmaps=4)
+        # if isinstance(f_maps, int):
+        #     # use 4 levels in the encoder path as suggested in the paper
+        #     f_maps = create_feature_maps(f_maps, number_of_fmaps=4)
 
 
         if isinstance(depth_stride, int):
