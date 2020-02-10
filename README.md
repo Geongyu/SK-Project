@@ -89,30 +89,29 @@ python main.py \
 | coorconv | [list] | the Number of coordconv layers. default : [9] |
 
 ### Segmentation - 3D Train Examples
-* python main.py --save_path ./resnet_cifar10/entropy/ --model res110 --data cifar10 --rank_target entropy --epochs 300 --scheduler 1 --gpu_id 0
-* python main.py --save_path ./densenet_BC_cifar10/entropy/ --model densenet_BC --data cifar10 --rank_target entropy --epochs 200 --scheduler 2 --gpu_id 0
+* python main.py --trn-root /data1/JM/sk_project/data2th_trainvalid_3d_patches_48_48_48_st_16_bg_0.1_nonzero_0.1 --val-root /data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1 --input-size 48 48 48 --lr-schedule 20 30 --lr 0.01 --weight-decay 0.0005 --gamma 0.1 --f-maps 32 64 128 256 --stride-test 16 --exp jm_test1 --batch-size 128 --loss-function dice
+
 ```
 python main.py \
---epochs 300 \
---batch_size 128 \
---scheduler 1 \
---lr 0.1 \
---weight_decay 0.0001 \
---momentum 0.9 \
---nesterov False \
---gpu_id 0 \
---model res110 \
---data cifar10 \
---rank_target softmax \
---rank_weight 1.0 \
---save_path ./res110_cifar10_softmax/
+--trn-root /data1/JM/sk_project/data2th_trainvalid_3d_patches_48_48_48_st_16_bg_0.1_nonzero_0.1 \
+--val-root /data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1 \
+--input-size 48 48 48 \
+--lr-schedule 20 30 \
+--lr 0.01 \
+--weight-decay 0.0005 \
+--gamma 0.1 \
+--f-maps 32 64 128 256 \
+--stride-test 16 \
+--exp exp_sk-project-3d \
+--batch-size 128 \
+--loss-function dice
 ```
+
 | Args 	| Options 	| Description 	|
-|:---------:|:--------:|:----------------------------------------------------|
+|:---------|:--------|:----------------------------------------------------|
 | trn-root 	|  [str] 	| dataset locations. 	|
 | tst-root | [str] | dataset locations. |
 | model 	| [str] | model architecture.  default : unet |
-| model 	| unet, unet coordconv, unet scse, unet multiinput	| model architecture : unet base models, default : unet	|
 | f-maps 	| [int] |Feature map size of encoder layer.  default : [32, 64, 128, 256]	|
 | conv-layer-order 	| [str] | Order of layers. cbr -> conv + BN + Relu. default : cbr	|
 | batch-size 	| [int] 	| Number of samples per batch. default : 8  |
