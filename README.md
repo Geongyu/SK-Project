@@ -112,6 +112,7 @@ python main.py \
 | trn-root 	|  [str] 	| dataset locations. 	|
 | tst-root | [str] | dataset locations. |
 | model 	| [str] | model architecture.  default : unet |
+| model 	| unet, unet coordconv, unet scse, unet multiinput	| model architecture : unet base models, default : unet	|
 | f-maps 	| [int] |Feature map size of encoder layer.  default : [32, 64, 128, 256]	|
 | conv-layer-order 	| [str] | Order of layers. cbr -> conv + BN + Relu. default : cbr	|
 | batch-size 	| [int] 	| Number of samples per batch. default : 8  |
