@@ -17,6 +17,7 @@
 ### Logger
 - Train Logger       : epoch, loss, IoU, Dice, Slice-Level-Accuracy
 - Test Logger        : epoch, loss, IoU, Dice, Slice-Level-Accuracy
+- Classifications : epoch, loss, accuracy
 
 ## Getting Started
 ### Requirements
@@ -30,8 +31,8 @@
 - tensorboard (Use Segmentation-2D)
 
 ### Classifications - Train Examples
-* python main.py --save_path ./resnet_cifar10/entropy/ --model res110 --data cifar10 --rank_target entropy --epochs 300 --scheduler 1 --gpu_id 0
-* python main.py --save_path ./densenet_BC_cifar10/entropy/ --model densenet_BC --data cifar10 --rank_target entropy --epochs 200 --scheduler 2 --gpu_id 0
+* python3 main.py  --loss-function bce --exp MTL/Classification/Unet-Encoder-Classification --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Classifications/Unet-Encoder-Classification --arch unet --aug False --smooth False
+
 ```
 python main.py \
 --epochs 200 \
@@ -40,54 +41,52 @@ python main.py \
 --lr 0.1 \
 --weight_decay 0.0001 \
 --momentum 0.9 \
---nesterov False \
---gpu_id 0,1,2,3 \
 --model Unet \
 --data sk-datasets \
---save_path ./res110_cifar10_softmax/
+--exp ./MTL/Classification/Unet-Encoder-Classification/
 ```
 | Args 	| Options 	| Description 	|
 |---------|--------|----------------------------------------------------|
 | trn-root 	|  [str] 	| dataset locations. 	|
-| model 	| unet, unetcoord, unetmultiinput, scse_block	| model architecture : unet, unetcoord(Unet + CoordConv), unetmultiinput(Unet + Multi Input Images), scse_block(Unet + Squeeze and ) 	|
-| batch_size 	| [int] 	| Number of samples per batch. defalut : 8|
-| epochs 	| [int] 	| Number of epochs for training. defalut : 300|
+| tst-root | [str] | dataset locations. |
+| model 	| efficientnet, resnet	| model architecture : efficientnet (defalut : b1 model), Resnet (defalut : 50), default : efficient net	|
+| batch_size 	| [int] 	| Number of samples per batch. default : 8|
+| epochs 	| [int] 	| Number of epochs for training. default : 200|
 | scheduler 	| 1, 2	| 1.[150, 200] epoch decay 0.1, / 2.consine_lr 	defalut : 1|
 | learning_rate 	| [float] 	| Learning rate. defalut : 0.1	|
-| gpu_id 	| [str] 	| Learning rate. defalut : 0	|
-| save_path 	| [str] 	| ./res110_cifar10_softmax/	|
+| exp 	| [str] 	| ./test/	|
+| number | [int] | A number of Efficient net. default : b1 |
+| momentum | [int] | Momentum of Optimizers. default : 0.9 |
+| tenosrboardwriter | [str] | save path of tensor board |
 
 ### Segmentation - 2D Train Examples
-* python main.py --save_path ./resnet_cifar10/entropy/ --model res110 --data cifar10 --rank_target entropy --epochs 300 --scheduler 1 --gpu_id 0
-* python main.py --save_path ./densenet_BC_cifar10/entropy/ --model densenet_BC --data cifar10 --rank_target entropy --epochs 200 --scheduler 2 --gpu_id 0
+* python3 main.py  --loss-function bce --exp Segmentation/Unet-Encoder --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Segmentation/Unet-Encoder --arch unet --aug False --smooth False --coordconv [none] 
+
 ```
 python main.py \
---epochs 300 \
---batch_size 128 \
---scheduler 1 \
+--epochs 200 \
+--batch_size 4 * n (n is Number of GPUs) \
+--scheduler [100 150 200] \
 --lr 0.1 \
 --weight_decay 0.0001 \
 --momentum 0.9 \
---nesterov False \
---gpu_id 0 \
---model res110 \
---data cifar10 \
---rank_target softmax \
---rank_weight 1.0 \
---save_path ./res110_cifar10_softmax/
+--model Unet \
+--data sk-datasets \
+--exp ./MTL/Classification/Unet-Encoder-Classification/
 ```
 | Args 	| Options 	| Description 	|
 |---------|--------|----------------------------------------------------|
-| dataset 	| cifar10, cifar100, <br>svhn 	| dataset. 	|
-| model 	| res110, densenet_BC, mobil, vgg16	| model architecture : res110(Pre_Act), densenet_BC(d=100,k=12), mobil(V2), vgg16(bn) 	|
-| rank_target 	| softmax, <br>entropy, <br>margin 	| rank target. 	|
-| rank_weight 	| [float] 	| rank_weight. defalut : 1.0	ensemble : 0.5|
-| batch_size 	| [int] 	| Number of samples per batch. defalut : 128|
-| epochs 	| [int] 	| Number of epochs for training. defalut : 300|
-| scheduler 	| 1, 2	| 1.[150, 250] epoch decay 0.1, / 2.consine_lr 	defalut : 1|
+| trn-root 	|  [str] 	| dataset locations. 	|
+| tst-root | [str] | dataset locations. |
+| model 	| unet, unet coordconv, unet scse, unet multiinput	| model architecture : unet base models, default : unet	|
+| batch_size 	| [int] 	| Number of samples per batch. default : 8|
+| epochs 	| [int] 	| Number of epochs for training. default : 200|
+| scheduler 	| [int]	| 100 170 200 epoch decay 0.1 	defalut : 100 170 200|
 | learning_rate 	| [float] 	| Learning rate. defalut : 0.1	|
-| gpu_id 	| [str] 	| Learning rate. defalut : 0	|
-| save_path 	| [str] 	| ./res110_cifar10_softmax/	|
+| exp 	| [str] 	| ./test/	|
+| momentum | [int] | Momentum of Optimizers. default : 0.9 |
+| tenosrboardwriter | [str] | save path of tensor board |
+| coorconv | [list] | the Number of coordconv layers. default : [9] |
 
 ### Segmentation - 3D Train Examples
 * python main.py --save_path ./resnet_cifar10/entropy/ --model res110 --data cifar10 --rank_target entropy --epochs 300 --scheduler 1 --gpu_id 0
