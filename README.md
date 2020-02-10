@@ -114,12 +114,12 @@ python main.py \
 | model 	| [str] | model architecture.  default : unet	|
 | f-maps 	| [int] |Feature map size of encoder layer.  default : [32, 64, 128, 256]	|
 | conv-layer-order 	| [str] | Order of layers. cbr -> conv + BN + Relu. default : cbr	|
-| batch-size 	| [int] 	| Number of samples per batch. default : 8|
-| input-size 	| [int] 	| Size of input patch. default : [48,48,48]|
-| epochs 	| [int] 	| Number of epochs for training. default : 200|
-| lr-schedule 	| [int]	| epoch decay 0.1. 	defalut : [20,30,35]|
+| batch-size 	| [int] 	| Number of samples per batch. default : 8  |
+| input-size 	| [int] 	| Size of input patch. default : [48,48,48]  |
+| epochs 	| [int] 	| Number of epochs for training. default : 200  |
+| lr-schedule 	| [int]	| epoch decay 0.1. 	defalut : [20,30,35]  |
 | weight-decay 	| [float]	| weight-decay. 	defalut : 0.0005|
-| loss-function 	| [str]	| bce ,dice, weight_bce.  defalut : bce|
+| loss-function 	| [str]	| bce ,dice, weight_bce.  defalut : bce  |
 | learning_rate 	| [float] 	| Learning rate. defalut : 0.1	|
 | exp 	| [str] 	| save folder name.  |
 
