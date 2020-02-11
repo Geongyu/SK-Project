@@ -5,6 +5,7 @@ import time
 import shutil
 import pickle
 import numpy as np
+import random
 
 import torch
 import torch.nn as nn
@@ -20,7 +21,7 @@ from utils import Logger, AverageMeter, save_checkpoint
 from model import UNet3D
 from losses import DiceLoss
 from predict import main_test
-import random
+
 
 parser = argparse.ArgumentParser()
 
