@@ -162,7 +162,7 @@ def main():
 
     best_acc = 0
     for epoch in range(lr_schedule[-1]):
-        train_all_data(train_loader, net, criterion, optimizer, epoch, trn_logger, sublogger=trn_raw_logger, trainset = trainset, val_loader= valid_loader, val_logger = val_logger, val_mode=True)
+        train(train_loader, net, criterion, optimizer, epoch, trn_logger, sublogger=trn_raw_logger, trainset = trainset, val_loader= valid_loader, val_logger = val_logger, val_mode=True)
 
         print("Done")
         loss, acc = validate(valid_loader, net, criterion, epoch, val_logger)
@@ -185,7 +185,7 @@ def main():
 
     draw_curve(work_dir, trn_logger, val_logger)
 
-def train_all_data(trn_loader, model, criterion, optimizer, epoch, logger, sublogger, trainset, history=None, work_dir= os.path.join(args.work_dir, args.exp), val_loader=False, val_logger=False, val_mode=False):
+def train(trn_loader, model, criterion, optimizer, epoch, logger, sublogger, trainset, history=None, work_dir= os.path.join(args.work_dir, args.exp), val_loader=False, val_logger=False, val_mode=False):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
