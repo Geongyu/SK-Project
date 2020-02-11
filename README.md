@@ -112,7 +112,7 @@ python main.py \
 | trn-root 	|  [str] 	| dataset locations. 	|
 | tst-root | [str] | dataset locations. |
 | model 	| [str] | model architecture.  default : unet |
-| f-maps 	| [int] |Feature map size of encoder layer.  default : [32, 64, 128, 256]	 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| f-maps 	| [int] |Feature map size of encoder layer.  default : [32, 64, 128, 256]	Alt+0+1+6+0   |
 | conv-layer-order 	| [str] | Order of layers. cbr -> conv + BN + Relu. default : cbr	|
 | batch-size 	| [int] 	| Number of samples per batch. default : 8  |
 | input-size 	| [int] 	| Size of input patch. default : [48,48,48].   |
