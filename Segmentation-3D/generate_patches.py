@@ -1,11 +1,58 @@
 
 import os
 import glob
-import itertools
 
 import numpy as np
-
 from skimage import io
+
+
+
+
+def generate_patch_main(mode,patchsize,stride,bg_prob):
+
+
+    # training
+    if mode == 'train':
+        data_root = ['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/trainvalid_3d',
+                     '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/trainvalid_3d',
+                     #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/trainvalid_3d',
+                     #'/data2/woans0104/sk_hemorrhage_dataset/data_4rd/trainvalid_3d'
+                     ]
+        dst_dir = '/data1/JM/sk_project/data2th_trainvalid_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,0.1)
+
+    # test
+    elif mode == 'test':
+        data_root = ['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/test_3d',
+                     '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
+                     #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d',
+                     #'/data2/woans0104/sk_hemorrhage_dataset/data_4rd/test_3d'
+                     ]
+        dst_dir = '/data1/JM/sk_project/data2th_test_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,0.1)
+
+
+
+    data_ids_list = []
+    for i in range(len(data_root)):
+        data_ids = os.listdir(os.path.join(data_root[i], 'images'))
+        data_ids_list.append(data_ids)
+
+
+    generation_results = []
+    for j in range(len(data_root)):
+        for data_id in data_ids_list[j]:
+            res = generate_patches(data_root[j], data_id=data_id, dst_dir=dst_dir,
+                                   patch_size=(48,patchsize,patchsize),
+                                   stride=(1,stride,stride),
+                                   target_depth_for_padding=48,
+                                   bg_sampling_prob=bg_prob)
+
+            print('Patches for {} are generated.'.format(data_id))
+            generation_results.append(res)
+
+    return generation_results
+
+
+
 
 
 def generate_patches(data_root,
@@ -56,6 +103,9 @@ def generate_patches(data_root,
 
         """
         _padding_3d : pad up and down by target_length
+
+        Args:
+            padding_value : The value to fill in the padding. default : 0
 
         """
 
@@ -147,50 +197,19 @@ def generate_patches(data_root,
 
     return (data_id, {'n_bg_patches': count_bg_patch, 'n_roi_patchs': count_roi_patch})
 
+
+
+
 if __name__=='__main__':
 
-
-    def generate_patch(mode,patchsize,stride,bg_prob):
-
-        # training
-        if mode == 'train':
-            data_root = ['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/trainvalid_3d',
-                         '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/trainvalid_3d',
-                         #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/trainvalid_3d',
-                         #'/data2/woans0104/sk_hemorrhage_dataset/data_4rd/trainvalid_3d'
-                         ]
-            dst_dir = '/data1/JM/sk_project/data2th_trainvalid_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,0.1)
-
-        # test
-        elif mode == 'test':
-            data_root = ['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/test_3d',
-                         '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
-                         #'/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d',
-                         #'/data2/woans0104/sk_hemorrhage_dataset/data_4rd/test_3d'
-                         ]
-            dst_dir = '/data1/JM/sk_project/data2th_test_3d_patches_48_{}_{}_st_{}_bg_{}_nonzero_{}'.format(patchsize,patchsize,stride,bg_prob,0.1)
-
-
-        data_ids_list = []
-        for i in range(len(data_root)):
-            data_ids = os.listdir(os.path.join(data_root[i], 'images'))
-            data_ids_list.append(data_ids)
-
-
-        generation_results = []
-        for j in range(len(data_root)):
-            for data_id in data_ids_list[j]:
-                res = generate_patches(data_root[j], data_id=data_id, dst_dir=dst_dir,
-                                       patch_size=(48,patchsize,patchsize),
-                                       stride=(1,stride,stride),
-                                       target_depth_for_padding=48,
-                                       bg_sampling_prob=bg_prob)
-
-                print('Patches for {} are generated.'.format(data_id))
-                generation_results.append(res)
-
-
-    
-    mode_list =['test']
+    mode_list =['train','test']
     for k in range(len(mode_list)):
-        generate_patch(mode_list[k],patchsize=48,stride=16,bg_prob=1)
+        generation_results=generate_patch_main(mode_list[k],patchsize=48,stride=16,bg_prob=1)
+
+
+
+
+
+
+
+

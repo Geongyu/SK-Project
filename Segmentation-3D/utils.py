@@ -18,6 +18,10 @@ import argparse
 
 class AverageMeter(object):
 
+    """
+    AverageMeter : Function to calculate the value of logger.
+
+    """
     def __init__(self):
         self.reset()
 
@@ -85,6 +89,19 @@ class Logger(object):
         return log
 
 def save_checkpoint(state, is_best, work_dir, filename='checkpoint.pth'):
+
+    """
+    save_checkpoint : Function for save parameters.
+
+
+    Args:
+        state : Saved value.
+        is_best : Variable for saving. True or False
+        work_dir : Save folder name
+        filename : Save filename
+
+    """
+
     checkpoint_path = os.path.join(work_dir, filename)
     if is_best:
         torch.save(state, checkpoint_path)
@@ -107,6 +124,18 @@ def load_exam(exam_dir, ftype='png'):
     return data_3d
 
 def pad_3d(data_3d, target_length, padding_value=0):
+
+    """
+    pad_3d : A function that adds padding to an image.
+
+
+    Args:
+        data_3d : 3d image
+        target_length : The size get when you add padding.
+        padding_value : The value to fill in the padding. default : 0
+
+
+    """
 
     d, h, w = data_3d.shape # assume single channel
     margin = target_length - d # assume that h and w are sufficiently larger than target_length
@@ -142,7 +171,7 @@ def calc_stats(data_root):
     return {'mean': total_mean, 'std': total_std}
 
 def draw_curve(work_dir,logger1,logger2):
-    # Logger 2개를 입력으로 받아와 각각의 계산된 값들을 시각화하여 처리한다
+
     logger1 = logger1.read()
     logger2 = logger2.read()
 
