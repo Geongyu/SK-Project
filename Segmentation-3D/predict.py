@@ -18,61 +18,80 @@ from dataset import DatasetTest
 from utils import Logger
 
 
-def dict_for_datas():
+def main_test(model=None, args=None, val_mode=False):
+    work_dir = os.path.join(args.work_dir, args.exp)
+    file_name = args.file_name
+    if not val_mode:
+        result_dir = os.path.join(work_dir, file_name)
+        if not os.path.exists(result_dir):
+            os.makedirs(result_dir)
 
-    allData_dic = {
-        'data1th': {
-            'top_1th': ['401', '403', '426', '432', '450', '490', '514'],
-            'mid_1th': ['410', '425', '433', '441', '443', '513', '518'],
-            'low_1th': ['405', '411', '430', '459', '464', '480']
-        },
-        'data2th': {
-            'top_2th': ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
-            'mid_2th': "",
-            'low_2th': ""
-        },
-        'data3th': {
-            'top_3th': ['59_KKO', '562', '564', '566', '583', '584', '599'],
-            'mid_3th': ['61_CDJ', '66_YYB', '70_PJH', '575', '576', '590', '595'],
-            'low_3th': ['56_KMK', '63_JJW', '72_TKH', '561', '567', '585']
-        },
-        'data4th': {
-            'top_4th': ['120', '132', '146', '157', '158', '169', '199', '217', '222', '234', '609', '617', '623',
-                        '634', '652', '662', '671', '673', '676', '686', '697'],
-            'mid_4th': ['106', '113', '114', '140', '152', '159', '164', '180', '224', '233', '235', '238', '242',
-                        '244', '601', '611', '624', '635', '645', '648', '654', '663'],
-            'low_4th': ['102', '130', '148', '151', '156', '160', '161', '174', '185', '189', '205', '211', '213',
-                        '215', '221', '226', '608', '615', '616', '632', '658', '665']
-        },
-        'data5th': {
-            'top_5th': ['261', '262', '263', '305', '340', '374', '375', '392'],
-            'mid_5th': ['251', '264', '273', '289', '293', '324', '328', '341', '347', '388'],
-            'low_5th': ['253', '274', '296', '301', '303', '326', '334', '338', '351', '377']
-        },
-        'overal': {
-            'overal_1th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                           '441', '433', '405', '459', '450', '514', '513', '410'],
-            'overal_2th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                           '441', '433', '405', '459', '450', '514', '513', '410']
-                          + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
-            'overal_3th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                           '441', '433', '405', '459', '450', '514', '513', '410']
-                          + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500']
-                          + ['575', '567', '70_PJH', '561', '583', '72_TKH', '564', '56_KMK', '599', '61_CDJ',
-                             '66_YYB', '584', '562', '59_KKO', '585', '590', '566', '595', '576', '63_JJW'],
-            'overal_4th': ['120', '132', '146', '157', '158', '169', '199', '217', '222', '234', '609', '617',
-                           '623', '634', '652', '662', '671', '673', '676', '686', '697',
-                           '106', '113', '114', '140', '152', '159', '164', '180', '224', '233', '235', '238',
-                           '242', '244', '601', '611', '624', '635', '645', '648', '654', '663',
-                           '102', '130', '148', '151', '156', '160', '161', '174', '185', '189', '205', '211',
-                           '213', '215', '221', '226', '608', '615', '616', '632', '658', '665'],
-            'overal_5th': ['261', '262', '263', '305', '340', '374', '375', '392', '251', '264', '273', '289',
-                           '293', '324', '328', '341', '347', '388', '253', '274', '296', '301', '303', '326',
-                           '334', '338', '351', '377']
-        }
-    }
+        # load model and input stats
+        # Note: here, the model should be given manually
+        # TODO: try to import model configuration later
+        if model is None:
 
-    return allData_dic
+            model = UNet3D(1, 1, f_maps=args.f_maps, depth_stride=args.depth_stride, conv_layer_order='cbr',
+                           num_groups=1)
+            model = nn.DataParallel(model).cuda()
+
+        # load model
+        checkpoint_path = os.path.join(work_dir, 'model_best.pth')
+        state = torch.load(checkpoint_path)
+
+        model.load_state_dict(state['state_dict'])
+        cudnn.benchmark = True
+
+    input_stats = np.load(os.path.join(work_dir, 'input_stats.npy'), allow_pickle=True).tolist()
+
+    # return overall_performance
+
+    if not val_mode:
+        # filepath
+
+        allData_dic = dict_for_datas()
+
+        # list exam ids
+        collated_performance = {}
+        for i in range(len(args.test_root)):
+            exam_ids = os.listdir(os.path.join(args.test_root[i], 'images'))
+            for exam_id in exam_ids:
+                print('Processing {}'.format(exam_id))
+                exam_path = os.path.join(args.test_root[i], 'images', exam_id)  # '/data2/test_3d/images/403'
+                prediction_list, org_input_list, org_target_list = predict(model, exam_path, input_stats, args=args)
+
+                # measure performance
+                performance = performance_by_slice(prediction_list, org_target_list)
+
+                # find folder
+                find_folder = ''
+                count = 0
+                for data_no, level_no in allData_dic.items():
+                    for level_key, level_val in level_no.items():
+                        if exam_id in level_val:
+                            if 'overal' in level_key.split('_'):  # prevent duplicate data save
+                                continue
+                            find_folder = level_key
+                            count += 1
+                assert count == 1, 'duplicate folder'
+
+                result_dir_sep = os.path.join(result_dir, find_folder)
+                save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
+
+                collated_performance[exam_id] = performance
+
+        for data_no, level_no in allData_dic.items():
+            for level_key, level_val in level_no.items():
+                sep_dict = seperate_dict(collated_performance, level_val)
+                if len(sep_dict) == 0:
+                    continue
+                sep_performance = compute_overall_performance(sep_dict)
+
+                with open(os.path.join(result_dir, '{}_performance.json'.format(level_key)), 'w') as f:
+                    json.dump(sep_performance, f)
+
+
+
 
 
 def predict(model, exam_root, input_stats, args=None):
@@ -248,78 +267,61 @@ def save_fig(exam_id, org_input, org_target, prediction,
         plt.close()
 
 
-def main_test(model=None, args=None, val_mode=False):
-    work_dir = os.path.join(args.work_dir, args.exp)
-    file_name = args.file_name
-    if not val_mode:
-        result_dir = os.path.join(work_dir, file_name)
-        if not os.path.exists(result_dir):
-            os.makedirs(result_dir)
+def dict_for_datas():
 
-        # load model and input stats
-        # Note: here, the model should be given manually
-        # TODO: try to import model configuration later
-        if model is None:
+    allData_dic = {
+        'data1th': {
+            'top_1th': ['401', '403', '426', '432', '450', '490', '514'],
+            'mid_1th': ['410', '425', '433', '441', '443', '513', '518'],
+            'low_1th': ['405', '411', '430', '459', '464', '480']
+        },
+        'data2th': {
+            'top_2th': ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
+            'mid_2th': "",
+            'low_2th': ""
+        },
+        'data3th': {
+            'top_3th': ['59_KKO', '562', '564', '566', '583', '584', '599'],
+            'mid_3th': ['61_CDJ', '66_YYB', '70_PJH', '575', '576', '590', '595'],
+            'low_3th': ['56_KMK', '63_JJW', '72_TKH', '561', '567', '585']
+        },
+        'data4th': {
+            'top_4th': ['120', '132', '146', '157', '158', '169', '199', '217', '222', '234', '609', '617', '623',
+                        '634', '652', '662', '671', '673', '676', '686', '697'],
+            'mid_4th': ['106', '113', '114', '140', '152', '159', '164', '180', '224', '233', '235', '238', '242',
+                        '244', '601', '611', '624', '635', '645', '648', '654', '663'],
+            'low_4th': ['102', '130', '148', '151', '156', '160', '161', '174', '185', '189', '205', '211', '213',
+                        '215', '221', '226', '608', '615', '616', '632', '658', '665']
+        },
+        'data5th': {
+            'top_5th': ['261', '262', '263', '305', '340', '374', '375', '392'],
+            'mid_5th': ['251', '264', '273', '289', '293', '324', '328', '341', '347', '388'],
+            'low_5th': ['253', '274', '296', '301', '303', '326', '334', '338', '351', '377']
+        },
+        'overal': {
+            'overal_1th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
+                           '441', '433', '405', '459', '450', '514', '513', '410'],
+            'overal_2th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
+                           '441', '433', '405', '459', '450', '514', '513', '410']
+                          + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
+            'overal_3th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
+                           '441', '433', '405', '459', '450', '514', '513', '410']
+                          + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500']
+                          + ['575', '567', '70_PJH', '561', '583', '72_TKH', '564', '56_KMK', '599', '61_CDJ',
+                             '66_YYB', '584', '562', '59_KKO', '585', '590', '566', '595', '576', '63_JJW'],
+            'overal_4th': ['120', '132', '146', '157', '158', '169', '199', '217', '222', '234', '609', '617',
+                           '623', '634', '652', '662', '671', '673', '676', '686', '697',
+                           '106', '113', '114', '140', '152', '159', '164', '180', '224', '233', '235', '238',
+                           '242', '244', '601', '611', '624', '635', '645', '648', '654', '663',
+                           '102', '130', '148', '151', '156', '160', '161', '174', '185', '189', '205', '211',
+                           '213', '215', '221', '226', '608', '615', '616', '632', '658', '665'],
+            'overal_5th': ['261', '262', '263', '305', '340', '374', '375', '392', '251', '264', '273', '289',
+                           '293', '324', '328', '341', '347', '388', '253', '274', '296', '301', '303', '326',
+                           '334', '338', '351', '377']
+        }
+    }
 
-            model = UNet3D(1, 1, f_maps=args.f_maps, depth_stride=args.depth_stride, conv_layer_order='cbr',
-                           num_groups=1)
-            model = nn.DataParallel(model).cuda()
-
-        # load model
-        checkpoint_path = os.path.join(work_dir, 'model_best.pth')
-        state = torch.load(checkpoint_path)
-
-        model.load_state_dict(state['state_dict'])
-        cudnn.benchmark = True
-
-    input_stats = np.load(os.path.join(work_dir, 'input_stats.npy'), allow_pickle=True).tolist()
-
-    # return overall_performance
-
-    if not val_mode:
-        # filepath
-
-        allData_dic = dict_for_datas()
-
-        # list exam ids
-        collated_performance = {}
-        for i in range(len(args.test_root)):
-            exam_ids = os.listdir(os.path.join(args.test_root[i], 'images'))
-            for exam_id in exam_ids:
-                print('Processing {}'.format(exam_id))
-                exam_path = os.path.join(args.test_root[i], 'images', exam_id)  # '/data2/test_3d/images/403'
-                prediction_list, org_input_list, org_target_list = predict(model, exam_path, input_stats, args=args)
-
-                # measure performance
-                performance = performance_by_slice(prediction_list, org_target_list)
-
-                # find folder
-                find_folder = ''
-                count = 0
-                for data_no, level_no in allData_dic.items():
-                    for level_key, level_val in level_no.items():
-                        if exam_id in level_val:
-                            if 'overal' in level_key.split('_'):  # prevent duplicate data save
-                                continue
-                            find_folder = level_key
-                            count += 1
-                assert count == 1, 'duplicate folder'
-
-                result_dir_sep = os.path.join(result_dir, find_folder)
-                save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
-
-                collated_performance[exam_id] = performance
-
-        for data_no, level_no in allData_dic.items():
-            for level_key, level_val in level_no.items():
-                sep_dict = seperate_dict(collated_performance, level_val)
-                if len(sep_dict) == 0:
-                    continue
-                sep_performance = compute_overall_performance(sep_dict)
-
-                with open(os.path.join(result_dir, '{}_performance.json'.format(level_key)), 'w') as f:
-                    json.dump(sep_performance, f)
-
+    return allData_dic
 
 
 
