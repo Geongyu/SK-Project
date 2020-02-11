@@ -206,11 +206,6 @@ size, correct, before_correct) :
         correct += added
     return correct, forget, added
 
-def send_slack_message(token,channel,messge):
-    token = token
-    slack = Slacker(token)
-    slack.chat.post_message(channel, messge)
-
 
 def str2bool(v):
     if isinstance(v, bool):
