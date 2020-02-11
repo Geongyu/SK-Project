@@ -113,7 +113,7 @@ python main.py \
 | tst-root | [str] | dataset locations. |
 | model 	| [str] | model architecture.  default : unet |
 | f-maps 	| [int] |Feature map size of encoder layer.  default : [32, 64, 128, 256]	 |
-| conv-layer-order 	| [str] | Order of layers.  'cr' -> conv + ReLU  /'crg' -> conv + ReLU + groupnorm / 'cl' -> conv + LeakyReLU /    'ce' -> conv + ELU / 'cbr' -> conv + BN + Relu. default : cbr	|
+| conv-layer-order 	| [str] | Order of layers.  'cr' -> conv + ReLU ,'crg' -> conv + ReLU + groupnorm , 'cbr' -> conv + BN + Relu.   default : cbr	|
 | batch-size 	| [int] 	| Number of samples per batch. default : 8  |
 | input-size 	| [int] 	| Size of input patch. default : [48,48,48].   |
 | epochs 	| [int] 	| Number of epochs for training. default : 200  |
