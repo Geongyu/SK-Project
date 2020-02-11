@@ -129,7 +129,7 @@ def main():
     best_iou = 0
 
     for epoch in range(lr_schedule[-1]):
-        segmentation_train(train_loader, net, criterion, optimizer, epoch, trn_logger, trn_raw_logger)
+        train(train_loader, net, criterion, optimizer, epoch, trn_logger, trn_raw_logger)
 
         iou = validate(valid_loader, net, criterion, epoch, val_logger)
         lr_scheduler.step()
@@ -151,7 +151,7 @@ def check_logger(output, target):
     return correct
 
 
-def segmentation_train(trn_loader, model, criterion, optimizer, epoch, logger, sublogger,
+def train(trn_loader, model, criterion, optimizer, epoch, logger, sublogger,
                    work_dir=os.path.join(args.work_dir, args.exp)):
     batch_time = AverageMeter()
     data_time = AverageMeter()

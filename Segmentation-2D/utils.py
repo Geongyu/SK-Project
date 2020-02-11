@@ -106,41 +106,6 @@ def load_exam(exam_dir, ftype='png'):
 
     return data_3d
 
-def pad_3d(data_3d, target_length, padding_value=0):
-
-    d, h, w = data_3d.shape # assume single channel
-    margin = target_length - d # assume that h and w are sufficiently larger than target_length
-    padding_size = margin // 2
-    upper_padding_size = padding_size
-    lower_padding_size = margin - upper_padding_size
-
-    padded = np.pad(data_3d, ((upper_padding_size, lower_padding_size),
-                              (0,0), (0,0)),
-                    'constant', constant_values=(padding_value,padding_value))
-
-    return padded, (upper_padding_size, lower_padding_size)
-
-def calc_stats(data_root):
-
-    data_ids = os.listdir(os.path.join(data_root, 'images'))
-
-    mean_meter = AverageMeter()
-    std_meter = AverageMeter()
-
-    for data_id in data_ids:
-        image_dir = os.path.join(data_root, 'images', data_id)
-        image_3d = load_exam(image_dir, ftype='png')
-        pixel_mean = image_3d.mean()
-        pixel_std = image_3d.std()
-
-        mean_meter.update(pixel_mean, image_3d.size)
-        std_meter.update(pixel_std, image_3d.size)
-
-    total_mean = mean_meter.avg
-    total_std = np.sqrt(std_meter.sum_2/std_meter.count)
-
-    return {'mean': total_mean, 'std': total_std}
-
 def draw_curve(work_dir,logger1,logger2):
     # Logger 2개를 입력으로 받아와 각각의 계산된 값들을 시각화하여 처리한다
     logger1 = logger1.read()
@@ -205,11 +170,6 @@ size, correct, before_correct) :
         forget = np.zeros(size) - (((before_correct - added) == 1).float())
         correct += added
     return correct, forget, added
-
-def send_slack_message(token,channel,messge):
-    token = token
-    slack = Slacker(token)
-    slack.chat.post_message(channel, messge)
 
 
 def str2bool(v):
