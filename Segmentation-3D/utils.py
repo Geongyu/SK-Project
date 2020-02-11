@@ -13,7 +13,6 @@ except:
 import shutil
 from collections import Iterable
 import matplotlib.pyplot as plt
-from slacker import Slacker
 import argparse
 
 class AverageMeter(object):
