@@ -12,7 +12,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
-from dataset import DatasetTrain, DatasetVal
+from dataloader import DatasetTrain, DatasetVal
 
 from utils import Logger, AverageMeter, save_checkpoint ,draw_curve
 
@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser()
 
 # arguments for training
 parser.add_argument('--trn-root', default='/data1/JM/sk_project/data2th_trainvalid_3d_patches_48_48_48_st_16_bg_0.1_nonzero_0.1')
-parser.add_argument('--tst-root', default='/data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1')
+parser.add_argument('--val-root', default='/data1/JM/sk_project/data2th_test_3d_patches_48_48_48_st_16_bg_1_nonzero_0.1')
 parser.add_argument('--work-dir', default='/data1/JM/sk_project/Segmentation-3D')
 parser.add_argument('--exp', type=str)
 
@@ -56,7 +56,7 @@ parser.add_argument('--optim', default='sgd', type=str)
 # arguments for model
 parser.add_argument('--model', default='unet', type=str)
 parser.add_argument('--f-maps', default=[32, 64, 128, 256], nargs='+', type=int)
-
+parser.add_argument('--augment', default=None, type=str)
 parser.add_argument('--conv-layer-order', default='cbr', type=str)
 parser.add_argument('--num-groups', default=1, type=int)
 parser.add_argument('--depth-stride', default=[2, 2, 2, 2], nargs='+', type=int)
@@ -66,7 +66,7 @@ parser.add_argument('--depth-stride', default=[2, 2, 2, 2], nargs='+', type=int)
 parser.add_argument('--test-root', default=['/data2/woans0104/sk_hemorrhage_dataset/data_1rd',
                                             '/data2/woans0104/sk_hemorrhage_dataset/data_2rd',
                                             ], nargs='+', type=str)
-parser.add_argument('--stride-test', default=None, nargs='+', type=int) #default=[1,16,16])
+parser.add_argument('--stride-test', default=[1,16,16], nargs='+', type=int) #default=[1,16,16])
 parser.add_argument('--target-depth-for-padding', default=None, type=int)
 parser.add_argument('--inplace-test', default=1, type=int)
 parser.add_argument('--file-name', default='result_all', type=str)
@@ -90,14 +90,15 @@ def main():
         pickle.dump(args, f)
 
 
-    #train 0.8 val 0.2
-    image_root = os.path.join(args.trn_root, 'images')
-    exam_ids = os.listdir(image_root)
+    #train
+    trn_image_root = os.path.join(args.trn_root, 'images')
+    exam_ids = os.listdir(trn_image_root)
     random.shuffle(exam_ids)
+    train_exam_ids = exam_ids
 
+    #train_exam_ids = exam_ids[:int(len(exam_ids)*0.8)]
+    #val_exam_ids = exam_ids[int(len(exam_ids) * 0.8):]
 
-    train_exam_ids = exam_ids[:int(len(exam_ids)*0.8)]
-    val_exam_ids = exam_ids[int(len(exam_ids) * 0.8):]
 
 
     # train_dataset
@@ -110,8 +111,15 @@ def main():
     # save input stats for later use
     np.save(os.path.join(work_dir, 'input_stats.npy'), trn_dataset.input_stats)
 
+
+    #val
+    val_image_root = os.path.join(args.val_root, 'images')
+    val_exam = os.listdir(val_image_root)
+    random.shuffle(val_exam)
+    val_exam_ids = val_exam
+
     # val_dataset
-    val_dataset = DatasetVal(args.tst_root,val_exam_ids, options=args, input_stats=trn_dataset.input_stats)
+    val_dataset = DatasetVal(args.val_root,val_exam_ids, options=args, input_stats=trn_dataset.input_stats)
     val_loader = torch.utils.data.DataLoader(val_dataset,
                                             batch_size=args.batch_size,
                                              shuffle=True,

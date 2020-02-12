@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from model import UNet3D
-from dataset import DatasetTest
+from dataloader import DatasetTest
 from utils import Logger
 
 
@@ -44,10 +44,8 @@ def main_test(model=None, args=None, val_mode=False):
 
     input_stats = np.load(os.path.join(work_dir, 'input_stats.npy'), allow_pickle=True).tolist()
 
-    # return overall_performance
 
     if not val_mode:
-        # filepath
 
         allData_dic = dict_for_datas()
 
@@ -69,22 +67,23 @@ def main_test(model=None, args=None, val_mode=False):
                 for data_no, level_no in allData_dic.items():
                     for level_key, level_val in level_no.items():
                         if exam_id in level_val:
-                            if 'overal' in level_key.split('_'):  # prevent duplicate data save
+                            if 'overall' in level_key.split('_'):  # prevent duplicate data save
                                 continue
                             find_folder = level_key
                             count += 1
                 assert count == 1, 'duplicate folder'
 
                 result_dir_sep = os.path.join(result_dir, find_folder)
-                save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
+                #save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
 
                 collated_performance[exam_id] = performance
 
         for data_no, level_no in allData_dic.items():
             for level_key, level_val in level_no.items():
                 sep_dict = seperate_dict(collated_performance, level_val)
-                if len(sep_dict) == 0:
+                if len(sep_dict) == 0 or len(sep_dict)!= len(level_val):
                     continue
+
                 sep_performance = compute_overall_performance(sep_dict)
 
                 with open(os.path.join(result_dir, '{}_performance.json'.format(level_key)), 'w') as f:
@@ -268,7 +267,6 @@ def save_fig(exam_id, org_input, org_target, prediction,
 
 
 def dict_for_datas():
-
     allData_dic = {
         'data1th': {
             'top_1th': ['401', '403', '426', '432', '450', '490', '514'],
@@ -298,28 +296,28 @@ def dict_for_datas():
             'mid_5th': ['251', '264', '273', '289', '293', '324', '328', '341', '347', '388'],
             'low_5th': ['253', '274', '296', '301', '303', '326', '334', '338', '351', '377']
         },
-        'overal': {
-            'overal_1th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                           '441', '433', '405', '459', '450', '514', '513', '410'],
-            'overal_2th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                           '441', '433', '405', '459', '450', '514', '513', '410']
-                          + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
-            'overal_3th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                           '441', '433', '405', '459', '450', '514', '513', '410']
-                          + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500']
-                          + ['575', '567', '70_PJH', '561', '583', '72_TKH', '564', '56_KMK', '599', '61_CDJ',
-                             '66_YYB', '584', '562', '59_KKO', '585', '590', '566', '595', '576', '63_JJW'],
-            'overal_4th': ['120', '132', '146', '157', '158', '169', '199', '217', '222', '234', '609', '617',
-                           '623', '634', '652', '662', '671', '673', '676', '686', '697',
-                           '106', '113', '114', '140', '152', '159', '164', '180', '224', '233', '235', '238',
-                           '242', '244', '601', '611', '624', '635', '645', '648', '654', '663',
-                           '102', '130', '148', '151', '156', '160', '161', '174', '185', '189', '205', '211',
-                           '213', '215', '221', '226', '608', '615', '616', '632', '658', '665'],
-            'overal_5th': ['261', '262', '263', '305', '340', '374', '375', '392', '251', '264', '273', '289',
-                           '293', '324', '328', '341', '347', '388', '253', '274', '296', '301', '303', '326',
-                           '334', '338', '351', '377']
+        'overall': {
+
         }
+
     }
+
+
+    import itertools
+
+    overall_data1th = list(itertools.chain.from_iterable([k for k in allData_dic['data1th'].values()]))
+    overall_data2th = overall_data1th + list(itertools.chain.from_iterable([k for k in allData_dic['data2th'].values()]))
+    overall_data3th = overall_data1th + overall_data2th + list(itertools.chain.from_iterable([k for k in allData_dic['data3th'].values()]))
+    overall_data4th = overall_data1th + overall_data2th + overall_data3th + list(itertools.chain.from_iterable([k for k in allData_dic['data4th'].values()]))
+    overall_data5th = overall_data1th + overall_data2th + overall_data3th + overall_data4th + list(itertools.chain.from_iterable([k for k in allData_dic['data5th'].values()]))
+
+
+    allData_dic['overall']['overall_data1th'] = overall_data1th
+    allData_dic['overall']['overall_data2th'] = overall_data2th
+    allData_dic['overall']['overall_data3th'] = overall_data3th
+    allData_dic['overall']['overall_data4th'] = overall_data4th
+    allData_dic['overall']['overall_data5th'] = overall_data5th
+
 
     return allData_dic
 
