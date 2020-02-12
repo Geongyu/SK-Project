@@ -51,16 +51,16 @@ python main.py \
 | tst-root | [str] | dataset locations. |
 | model 	| efficientnet, resnet	| model architecture : efficientnet (defalut : b1 model), Resnet (defalut : 50), default : efficient net	|
 | batch_size 	| [int] 	| number of samples per batch. default : 8|
-| epochs 	| [int] 	| number of epochs for training. default : 200|
-| scheduler 	| 1, 2	| 1.[150, 200] epoch decay 0.1, / 2.consine_lr 	defalut : 1|
+| epochs 	| [int] 	| number of epochs for training. default : 50|
 | learning_rate 	| [float] 	| learning rate. defalut : 0.1	|
 | exp 	| [str] 	| ./test/	|
 | number | [int] | a number of efficient net. default : b1 |
 | momentum | [int] | momentum of optimizers. default : 0.9 |
 | tenosrboardwriter | [str] | save path of tensor board |
+| kaggle | [str] | Kaggle Datasets. If True use Kaggle Datasets, default : False |
 
 ### Segmentation - 2D Train Examples
-* python3 main.py  --loss-function bce --exp Segmentation/Unet-Encoder --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Segmentation/Unet-Encoder --arch unet --aug False --smooth False --coordconv [none] 
+* python3 main.py  --loss-function bce --exp Segmentation/Unet --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Segmentation/Unet-Encoder --arch unet --aug False --smooth False --coordconv [none] 
 
 ```
 python main.py \
@@ -72,7 +72,7 @@ python main.py \
 --momentum 0.9 \
 --model Unet \
 --data sk-datasets \
---exp ./MTL/Classification/Unet-Encoder-Classification/
+--exp ./MTL/Segmentation/Unet/
 ```
 | Args 	| Options 	| Description 	|
 |---------|--------|----------------------------------------------------|
