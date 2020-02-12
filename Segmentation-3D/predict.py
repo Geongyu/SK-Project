@@ -74,7 +74,7 @@ def main_test(model=None, args=None, val_mode=False):
                 assert count == 1, 'duplicate folder'
 
                 result_dir_sep = os.path.join(result_dir, find_folder)
-                #save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
+                save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
 
                 collated_performance[exam_id] = performance
 

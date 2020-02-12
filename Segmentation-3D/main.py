@@ -63,8 +63,8 @@ parser.add_argument('--depth-stride', default=[2, 2, 2, 2], nargs='+', type=int)
 
 
 # arguments for test mode
-parser.add_argument('--test-root', default=['/data2/woans0104/sk_hemorrhage_dataset/data_1rd',
-                                            '/data2/woans0104/sk_hemorrhage_dataset/data_2rd',
+parser.add_argument('--test-root', default=['/data2/woans0104/sk_hemorrhage_dataset/data_1rd/test_3d',
+                                            '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
                                             ], nargs='+', type=str)
 parser.add_argument('--stride-test', default=[1,16,16], nargs='+', type=int) #default=[1,16,16])
 parser.add_argument('--target-depth-for-padding', default=None, type=int)
