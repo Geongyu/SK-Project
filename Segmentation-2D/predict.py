@@ -231,7 +231,7 @@ def main_test(model=None, args=None, val_mode=False):
         # Note: here, the model should be given manually
         # TODO: try to import model configuration later
         if model is None:
-            model = Unet_sae((1, 512, 512))
+            model = Unet2D((1, 512, 512))
             model = nn.DataParallel(model).cuda()
 
         # load model
@@ -265,13 +265,8 @@ def main_test(model=None, args=None, val_mode=False):
             'overal': {
                 'overal_1th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
                                '441', '433', '405', '459', '450', '514', '513', '410'],
-                'overal_2th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                               '441', '433', '405', '459', '450', '514', '513', '410']
-                              + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
-                'overal_3th': ['403', '401', '411', '490', '518', '426', '432', '480', '430', '464', '425', '443',
-                               '441', '433', '405', '459', '450', '514', '513', '410']
-                              + ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500']
-                              + ['575', '567', '70_PJH', '561', '583', '72_TKH', '564', '56_KMK', '599', '61_CDJ',
+                'overal_2th': ['52_KMK', '483', '29_MOY', '46_YMS', '40_LSH', '534', '8_KYK', '535', '536', '500'],
+                'overal_3th': ['575', '567', '70_PJH', '561', '583', '72_TKH', '564', '56_KMK', '599', '61_CDJ',
                                  '66_YYB', '584', '562', '59_KKO', '585', '590', '566', '595', '576', '63_JJW'],
 
             }
@@ -307,7 +302,7 @@ def main_test(model=None, args=None, val_mode=False):
                 save_fig(exam_id, org_input_list, org_target_list, prediction_list, performance, result_dir_sep)
 
                 collated_performance[exam_id] = performance
-
+    
         for data_no, level_no in allData_dic.items():
             for level_key, level_val in level_no.items():
                 sep_dict = seperate_dict(collated_performance, level_val)
@@ -319,23 +314,13 @@ def main_test(model=None, args=None, val_mode=False):
                     json.dump(sep_performance, f)
 
 
-
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--test-root', default=['/daintlab/data/sk_data/data_1rd/test_3d',
-                                                # '/data2/woans0104/sk_hemorrhage_dataset/data_2rd/test_3d',
-                                                # '/data2/woans0104/sk_hemorrhage_dataset/data_3rd/test_3d'
+                                                '/daintlab/data/sk_data/data_2rd/test_3d',
+                                                '/daintlab/data/sk_data/data_3rd/test_3d'
                                                 ], nargs='+', type=str)
-    parser.add_argument('--input-size', default=[48, 96, 96], nargs='+', type=int)
-    parser.add_argument('--stride-test', default=[1, 16, 16], nargs='+', type=int)
-
-    parser.add_argument('--f-maps', default=[32, 64, 128, 256], nargs='+', type=int)
-    parser.add_argument('--depth-stride', default=[2, 2, 2, 2], nargs='+', type=int)
     parser.add_argument('--augment', default=None, nargs='+', type=str)
-    parser.add_argument('--target-depth-for-padding', default=None, type=int)
     parser.add_argument('--batch-size', default=1, type=int)
     parser.add_argument('--work-dir', default='/daintlab/workspace/geongyu/sk-test')
     parser.add_argument('--exp', type=str)
