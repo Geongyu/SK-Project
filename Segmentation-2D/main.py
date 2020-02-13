@@ -79,8 +79,8 @@ def main():
     trainset = Segmentation_2d_data(train_filename)
     valiset = Segmentation_2d_data(test_filename)
 
-    train_loader = data.DataLoader(trainset, batch_size=args.batch_size, num_workers=args.num_workers)
-    valid_loader = data.DataLoader(valiset, batch_size=args.batch_size, num_workers=args.num_workers)
+    train_loader = data.DataLoader(trainset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
+    valid_loader = data.DataLoader(valiset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
 
     trn_logger = Logger(os.path.join(work_dir, 'train.log'))
     trn_raw_logger = Logger(os.path.join(work_dir, 'train_raw.log'))
