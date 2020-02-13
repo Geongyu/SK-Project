@@ -39,7 +39,7 @@ parser.add_argument('--momentum',default=0.9, type=float)
 parser.add_argument('--bce-weight', default=1, type=int)
 parser.add_argument('--num-workers', default=12, type=int)
 
-parser.add_argument('--arch', default='unet', type=str)
+parser.add_argument('--model', default='unet', type=str)
 
 # arguments for test mode
 parser.add_argument('--test-root', default=['/data2/sk_data/data_1rd/test_3d',
@@ -82,7 +82,7 @@ def main():
     train_filename = args.trn_root
     test_filename = args.test_root
 
-    if args.arch == "efficientnet" :
+    if args.model == "efficientnet" :
         if args.kaggle == True :
             trainset = load_kaggle_data_with_balanced(kaggle_path, kaggle_csv_path)
             class_sample_count = np.array([len(np.where(label_data["any"]==t)[0]) for t in np.unique(label_data["any"])])
@@ -99,7 +99,7 @@ def main():
                                  num_samples=len(train_weights))
         valiset = Classification_Data(test_filename)
 
-    elif args.arch == "resnet" :
+    elif args.model == "resnet" :
         trainset = Classification_Data(train_filename)
         valiset = Classification_Data(test_filename)
     else :
@@ -121,11 +121,11 @@ def main():
 
     # model
 
-    if args.arch == 'unet':
+    if args.model == 'unet':
         net = Unet2D(in_shape=(args.multi_input, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
-    elif args.arch == 'efficientnet' :
+    elif args.model == 'efficientnet' :
         net = EfficientNet.from_pretrained('efficientnet-' + args.number, num_classes=1)
-    elif args.arch == 'resnet' :
+    elif args.model == 'resnet' :
         net = models.resnet50(pretrained=True)
         num_ftrs = net.fc.in_fetures
         net.fc = nn.Linear(num_ftrs, 1)
