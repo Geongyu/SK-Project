@@ -6,7 +6,7 @@
 - Accuracy
 - DICE Coefficient
 - Jaccard Coefficient (IoU)
-- Slice-Level-Accuracy (For Segmentation 2D) \
+- Segmentation Accuracy (For Segmentation 2D) \
   If model found Hemorrhage Pixel(at least 1 pixels), then get accuracy scores
 
 ### Data Description 
