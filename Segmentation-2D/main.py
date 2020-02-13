@@ -37,7 +37,7 @@ parser.add_argument('--bce-weight', default=1, type=int)
 parser.add_argument('--num-workers', default=12, type=int)
 parser.add_argument('--padding-size', default=1, type=int)
 parser.add_argument('--batchnorm-momentum', default=0.1, type=float)
-parser.add_argument('--arch', default='unet', type=str)
+parser.add_argument('--model', default='unet', type=str)
 parser.add_argument('--multi-input', default=1, type=int)
 parser.add_argument('--coordconv-no', default=[1,2], nargs='+', type=int)
 parser.add_argument('--radious', default=False ,type=str2bool)
@@ -86,15 +86,15 @@ def main():
     trn_raw_logger = Logger(os.path.join(work_dir, 'train_raw.log'))
     val_logger = Logger(os.path.join(work_dir, 'validation.log'))
 
-    if args.arch == 'unet':
+    if args.model == 'unet':
         net = Unet2D(in_shape=(1, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
-    elif args.arch == 'unetcoord':
+    elif args.model == 'unetcoord':
         net = Unet2D_coordconv(in_shape=(1, 512, 512), padding=args.padding_size,
                             momentum=args.batchnorm_momentum, coordnumber=args.coordconv_no, radius=False)
-    elif args.arch == 'unetmultiinput':
+    elif args.model == 'unetmultiinput':
         net = Unet2D_multiinput(in_shape=(1, 512, 512), padding=args.padding_size,
                                 momentum=args.batchnorm_momentum)
-    elif args.arch == 'scse_block':
+    elif args.model == 'scse_block':
         net = Unet_sae(in_shape=(1, 512, 512), padding=args.padding_size, momentum=args.batchnorm_momentum)
     else:
         raise ValueError('Not supported network.')
