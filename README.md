@@ -63,7 +63,7 @@ python main.py \
 | kaggle | [str] | Kaggle Datasets. If True use Kaggle Datasets, default : False |
 
 ### Segmentation - 2D Train Examples
-* python3 main.py  --loss-function bce --exp Segmentation/Unet --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Segmentation/Unet-Encoder --arch unet --aug False --smooth False --coordconv [none] 
+* python3 main.py  --loss-function bce --exp Segmentation/Unet --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Segmentation/Unet-Encoder --model unet --aug False --smooth False --coordconv [none] 
 
 ```
 python main.py \
