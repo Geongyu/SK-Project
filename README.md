@@ -31,19 +31,22 @@
 - tensorboard (Use Segmentation-2D)
 
 ### Classifications - Train Examples
-* python3 main.py  --loss-function bce --exp MTL/Classification/Unet-Encoder-Classification --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Classifications/Unet-Encoder-Classification --arch unet --aug False --smooth False
+* python3 main.py  --loss-function bce --exp Classification/Classification --optim-function radam --momentum 0.9 --initial-lr 0.0001 --lr-schedule 75 100 --weight-decay 0.0001 --batch-size 24 --tenosrboardwriter Classifications/Unet-Encoder-Classification --model unet --aug False --smooth False
 
 ```
 python main.py \
---epochs 200 \
 --batch_size 4 * n (n is Number of GPUs) \
---scheduler [100 150 200] \
---lr 0.1 \
+--scheduler 75 100 \
+--initial-lr 0.0001 \
 --weight_decay 0.0001 \
+--batch-size 24 \
+--tenosrboardwriter Classifications/Unet-Encoder-Classification
 --momentum 0.9 \
 --model Unet \
 --data sk-datasets \
---exp ./MTL/Classification/Unet-Encoder-Classification/
+--exp Classification/Classification \
+--smooth False \
+--aug False  
 ```
 | Args 	| Options 	| Description 	|
 |---------|--------|----------------------------------------------------|
@@ -64,15 +67,19 @@ python main.py \
 
 ```
 python main.py \
---epochs 200 \
 --batch_size 4 * n (n is Number of GPUs) \
---scheduler [100 150 200] \
---lr 0.1 \
+--scheduler 75 100 \
+--lr 0.0001 \
+--optim-function radam \
 --weight_decay 0.0001 \
 --momentum 0.9 \
 --model Unet \
 --data sk-datasets \
---exp ./MTL/Segmentation/Unet/
+--exp ./MTL/Segmentation/Unet/ \
+--tenosrboardwriter Segmentation/Unet-Encoder \
+--aug False \
+--smooth False \
+--coordconv [none] 
 ```
 | Args 	| Options 	| Description 	|
 |---------|--------|----------------------------------------------------|
